@@ -19,28 +19,16 @@ import org.apache.logging.log4j.Logger;
 public class FlywayHandler implements RequestHandler<Request, Response> {
     private static final Logger logger = LogManager.getLogger(FlywayHandler.class);
 
-    private List<String> getMigrationFiles(List<String> folders) {
-        ArrayList<String> files = new ArrayList<>();
-        for(String folder : folders) {
-            FileUtils.listFiles(new File(folder), new String[]{"sql"}, false)
-                    .forEach(f -> files.add(f.getPath()));
-        }
-        return files;
+    public GitService gitService(GitRequest gitRequest) {
+        return new GitService(gitRequest);
     }
 
     @Override
     public Response handleRequest(Request input, Context context) {
         // TODO: S3 bucket support
         // TODO: Config support
-        // TODO: MySQL support
-        // TODO: Postgres support
-        // TODO: Env vars support
         // TODO: SSM secrets support
-        // TODO: migrate support
-        // TODO: baseline support
         // TODO: Git clone or reuse with pull
-        // TODO: log files based on suffix and prefix
-        // TODO: dump configuration to log
 
         MigrationFilesService migrationFilesService = null;
 
@@ -52,14 +40,7 @@ public class FlywayHandler implements RequestHandler<Request, Response> {
             FlywayRequest flywayRequest = FlywayRequest.build(input.getFlywayRequest());
 
 
-            GitService gitService = new GitService(
-                    gitRequest.getGitRepository(),
-                    gitRequest.getGitBranch(),
-                    gitRequest.getUsername(),
-                    gitRequest.getPassword(),
-                    gitRequest.getReuseRepo(),
-                    gitRequest.getFolders()
-            );
+            GitService gitService = gitService(gitRequest);
 
             S3Service s3Service = new S3Service(
                     s3Request.getBucket(),
@@ -70,25 +51,22 @@ public class FlywayHandler implements RequestHandler<Request, Response> {
                 migrationFilesService = s3Service;
             } else if (gitService.isValid()) {
                 migrationFilesService = gitService;
-            } else {
-                throw new RuntimeException("Both S3 and Git repositories missing configuration");
+            }
+            if(migrationFilesService != null) {
+                migrationFilesService.prepare();
             }
 
-            migrationFilesService.prepare();
-
-            List<String> folders = migrationFilesService.getFolders();
-            logger.info("Migration scripts from folders: " + String.join(",", folders));
-            logger.info("Migration scripts: " + String.join(",", getMigrationFiles(folders)));
-
-            FlywayService flywayService = new FlywayService(flywayRequest, dbRequest, folders);
+            FlywayService flywayService = new FlywayService(flywayRequest, dbRequest, migrationFilesService);
 
             return new Response(flywayService.call());
         } catch(Exception e) {
+            logger.error(e.getMessage(), e);
             throw new RuntimeException(e);
         } finally {
             if(migrationFilesService != null) try {
                 migrationFilesService.clean();
             } catch (MigrationFilesException e) {
+                logger.error(e.getMessage(), e);
                 throw new RuntimeException(e);
             }
         }

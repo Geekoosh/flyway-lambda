@@ -11,6 +11,7 @@ public class GitRequest {
 
     private String gitRepository;
     private String gitBranch;
+    private String commit;
     private List<String> folders;
     private String username;
     private String password;
@@ -70,11 +71,25 @@ public class GitRequest {
         return this;
     }
 
+    public String getCommit() {
+        return commit;
+    }
+
+    public void setCommit(String commit) {
+        this.commit = commit;
+    }
+
+    public void setReuseRepo(Boolean reuseRepo) {
+        this.reuseRepo = reuseRepo;
+    }
+
     public static GitRequest build(GitRequest base) {
         if(base == null) {
             base = new GitRequest();
         }
-        String gitSecret = System.getenv(SecretVars.GIT_SECRET.name());
+
+        SystemEnvironment systemEnvironment = new SystemEnvironment();
+        String gitSecret = systemEnvironment.getEnv(SecretVars.GIT_SECRET);
         if(gitSecret != null) {
             JSONObject json = ValueManager.latestSecretJson(gitSecret);
             base.setUsername(json.getString("username"));

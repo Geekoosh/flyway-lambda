@@ -7,23 +7,22 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class ValueManager {
     private static final Logger logger = LogManager.getLogger(ValueManager.class);
     static AWSSecretsManager client;
-    final static String region = System.getenv("AWS_REGION");
 
     public final static Function<String, List<String>> splitValuesFn =
-            v -> Arrays.stream(v.split(",")).map(String::trim).collect(Collectors.toList());
+            v -> v == null ? new ArrayList<>() : Arrays.stream(v.split(",")).map(String::trim).collect(Collectors.toList());
 
     public final static Function<String, Map<String, String>> splitMapValuesFn =
             v -> {
+                if(v == null) {
+                    return new HashMap<>();
+                }
                 Map<String, String> values = new HashMap<String, String>();
                 Arrays.stream(v.split(",")).forEach(s -> {
                     String[] parts = s.split("=");
@@ -33,10 +32,11 @@ public class ValueManager {
             };
 
     public final static Function<String, Boolean> booleanFn =
-            v -> v.equals("1") || v.toLowerCase().equals("true");
+            v -> v != null && (v.equals("1") || v.toLowerCase().equals("true"));
 
     private static AWSSecretsManager getClient() {
         if(ValueManager.client == null) {
+            String region = new SystemEnvironment().getEnv(EnvironmentVars.AWS_REGION);
             ValueManager.client = AWSSecretsManagerClientBuilder.standard().withRegion(region).build();
         }
         return ValueManager.client;
@@ -101,16 +101,17 @@ public class ValueManager {
     }
 
     public static <R> R value(R current, EnvironmentVars env, SecretVars secretEnvName, Function<String, R> mapping) throws ResourceNotFoundException, InvalidRequestException, InvalidParameterException {
+        SystemEnvironment systemEnvironment = new SystemEnvironment();
         if(current != null) {
             return current;
-        } else if(secretEnvName != null && System.getenv(secretEnvName.name()) != null) {
-            String secret = ValueManager.latestSecret(System.getenv(secretEnvName.name()));
+        } else if(secretEnvName != null && systemEnvironment.getEnv(secretEnvName) != null) {
+            String secret = ValueManager.latestSecret(systemEnvironment.getEnv(secretEnvName));
             return mapping != null ? mapping.apply(secret) : (R)secret;
 
-        } else if(env != null && System.getenv(env.name()) != null) {
-            String envValue = System.getenv(env.name());
+        } else if(env != null && systemEnvironment.getEnv(env) != null) {
+            String envValue = systemEnvironment.getEnv(env);
             return mapping != null ? mapping.apply(envValue) : (R)envValue;
         }
-        return null;
+        return mapping == null ? null : mapping.apply(null);
     }
 }

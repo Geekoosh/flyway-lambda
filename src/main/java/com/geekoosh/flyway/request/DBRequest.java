@@ -41,7 +41,8 @@ public class DBRequest {
         if(base == null) {
             base = new DBRequest();
         }
-        String dbSecret = System.getenv(SecretVars.DB_SECRET.name());
+        SystemEnvironment systemEnvironment = new SystemEnvironment();
+        String dbSecret = systemEnvironment.getEnv(SecretVars.DB_SECRET);
         if(dbSecret != null) {
             JSONObject json = ValueManager.latestSecretJson(dbSecret);
             base.setUsername(json.getString("username"));

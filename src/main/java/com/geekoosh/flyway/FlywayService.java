@@ -1,23 +1,26 @@
 package com.geekoosh.flyway;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.S3Object;
 import com.geekoosh.flyway.request.DBRequest;
 import com.geekoosh.flyway.request.FlywayRequest;
-import org.apache.commons.lang3.builder.ToStringBuilder;
+import com.geekoosh.lambda.MigrationFilesService;
+import com.geekoosh.lambda.s3.S3Service;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.MigrationInfoService;
+import org.flywaydb.core.api.configuration.Configuration;
 import org.flywaydb.core.api.configuration.FluentConfiguration;
 
 import java.io.*;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class FlywayService {
@@ -26,17 +29,12 @@ public class FlywayService {
     private DBRequest dbRequest;
     private List<String> folders;
 
-    public FlywayService(FlywayRequest flywayRequest, DBRequest dbRequest, List<String> folders) {
+    public FlywayService(FlywayRequest flywayRequest, DBRequest dbRequest, MigrationFilesService migrationFilesService) {
         this.flywayRequest = flywayRequest;
         this.dbRequest = dbRequest;
-        this.folders = folders;
-    }
-
-    private AmazonS3 getS3Client() {
-        return AmazonS3ClientBuilder
-                .standard()
-                .withRegion(System.getenv("AWS_REGION"))
-                .build();
+        if(migrationFilesService != null) {
+            this.folders = migrationFilesService.getFolders();
+        }
     }
 
     private InputStream urlStream(String url) throws IOException {
@@ -46,7 +44,7 @@ public class FlywayService {
             String[] parts = url.split("/");
             String bucket = parts[0];
             String path = String.join("/", Arrays.copyOfRange(parts, 1, parts.length));
-            S3Object s3object = getS3Client().getObject(bucket, path);
+            S3Object s3object = S3Service.getS3Client().getObject(bucket, path);
             return s3object.getObjectContent();
         } else {
             return new URL(url).openStream();
@@ -59,12 +57,52 @@ public class FlywayService {
         return prop;
     }
 
-    private Flyway configure() throws IOException {
+    private void dumpConfiguration(Flyway flyway) {
+        String configDump = new ReflectionToStringBuilder(flyway.getConfiguration(), ToStringStyle.MULTI_LINE_STYLE)
+                .setExcludeFieldNames("password").toString();
+
+        logger.info("Flyway configuration: " + configDump);
+    }
+
+    public List<String> getMigrationFiles(Flyway flyway) {
+        Configuration config = flyway.getConfiguration();
+        String migrationPattern = String.format(
+                "%s\\d+%s.*[%s]",
+                config.getSqlMigrationPrefix(),
+                config.getSqlMigrationSeparator(),
+                String.join("|", Arrays.stream(
+                        config.getSqlMigrationSuffixes())
+                        .map(s -> s.replace(".", "\\.")).collect(Collectors.toList()))
+        );
+
+        final Pattern p = Pattern.compile(migrationPattern);
+
+        ArrayList<String> filenames = new ArrayList<>();
+        for(String folder : folders) {
+            File[] files = new File(folder).listFiles(f -> p.matcher(f.getName()).matches());
+            if(files != null) {
+                Arrays.asList(files).forEach(f -> filenames.add(f.getPath()));
+            }
+        }
+        return filenames;
+    }
+
+    private void logMigrationFiles(Flyway flyway) {
+        List<String> filenames = getMigrationFiles(flyway);
+        logger.info(String.format("Migration files: %s", String.join(", ", filenames)));
+    }
+
+    public Flyway configure() throws IOException {
         FluentConfiguration config = Flyway.configure().dataSource(
                 dbRequest.getConnectionString(),
                 dbRequest.getUsername(),
                 dbRequest.getPassword()
-        ).locations(folders.stream().map(f -> "filesystem:" + f).collect(Collectors.toList()).toArray(new String[0]));
+        );
+
+        if(folders != null) {
+            config.locations(folders.stream().map(f -> "filesystem:" + f)
+                    .collect(Collectors.toList()).toArray(new String[0]));
+        }
 
         if(flywayRequest.getConfigFile() != null) {
             Properties props = loadConfig(flywayRequest.getConfigFile());
@@ -163,13 +201,17 @@ public class FlywayService {
             config.placeholders(flywayRequest.getPlaceholders());
         }
 
-        logger.info("Flyway configuration: " +
-                ToStringBuilder.reflectionToString(config, ToStringStyle.MULTI_LINE_STYLE));
-
-        return config.load();
+        Flyway flyway = config.load();
+        dumpConfiguration(flyway);
+        return flyway;
     }
     public void migrate() throws IOException {
+        if(folders == null) {
+            throw new RuntimeException("Both S3 and Git repositories missing configuration");
+        }
         Flyway flyway = configure();
+        logger.info("Migration scripts from folders: " + String.join(",", folders));
+        logMigrationFiles(flyway);
         flyway.migrate();
     }
     public void baseline() throws IOException {

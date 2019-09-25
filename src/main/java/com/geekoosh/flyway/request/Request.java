@@ -40,7 +40,8 @@ public class Request {
         return flywayRequest;
     }
 
-    public void setFlywayRequest(FlywayRequest flywayRequest) {
+    public Request setFlywayRequest(FlywayRequest flywayRequest) {
         this.flywayRequest = flywayRequest;
+        return this;
     }
 }

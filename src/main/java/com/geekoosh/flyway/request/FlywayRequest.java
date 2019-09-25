@@ -41,361 +41,301 @@ public class FlywayRequest {
         return connectRetries;
     }
 
-    public void setConnectRetries(Integer connectRetries) {
+    public FlywayRequest setConnectRetries(Integer connectRetries) {
         this.connectRetries = connectRetries;
+        return this;
     }
 
     public String getInitSql() {
         return initSql;
     }
 
-    public void setInitSql(String initSql) {
+    public FlywayRequest setInitSql(String initSql) {
         this.initSql = initSql;
+        return this;
     }
 
     public List<String> getSchemas() {
         return schemas;
     }
 
-    public void setSchemas(List<String> schemas) {
+    public FlywayRequest setSchemas(List<String> schemas) {
         this.schemas = schemas;
+        return this;
     }
 
     public String getTable() {
         return table;
     }
 
-    public void setTable(String table) {
+    public FlywayRequest setTable(String table) {
         this.table = table;
+        return this;
     }
 
     public String getTablespace() {
         return tablespace;
     }
 
-    public void setTablespace(String tablespace) {
+    public FlywayRequest setTablespace(String tablespace) {
         this.tablespace = tablespace;
+        return this;
     }
 
     public String getSqlMigrationPrefix() {
         return sqlMigrationPrefix;
     }
 
-    public void setSqlMigrationPrefix(String sqlMigrationPrefix) {
+    public FlywayRequest setSqlMigrationPrefix(String sqlMigrationPrefix) {
         this.sqlMigrationPrefix = sqlMigrationPrefix;
+        return this;
     }
 
     public String getRepeatableSqlMigrationPrefix() {
         return repeatableSqlMigrationPrefix;
     }
 
-    public void setRepeatableSqlMigrationPrefix(String repeatableSqlMigrationPrefix) {
+    public FlywayRequest setRepeatableSqlMigrationPrefix(String repeatableSqlMigrationPrefix) {
         this.repeatableSqlMigrationPrefix = repeatableSqlMigrationPrefix;
+        return this;
     }
 
     public String getSqlMigrationSeparator() {
         return sqlMigrationSeparator;
     }
 
-    public void setSqlMigrationSeparator(String sqlMigrationSeparator) {
+    public FlywayRequest setSqlMigrationSeparator(String sqlMigrationSeparator) {
         this.sqlMigrationSeparator = sqlMigrationSeparator;
+        return this;
     }
 
     public List<String> getSqlMigrationSuffixes() {
         return sqlMigrationSuffixes;
     }
 
-    public void setSqlMigrationSuffixes(List<String> sqlMigrationSuffixes) {
+    public FlywayRequest setSqlMigrationSuffixes(List<String> sqlMigrationSuffixes) {
         this.sqlMigrationSuffixes = sqlMigrationSuffixes;
+        return this;
     }
 
     public String getEncoding() {
         return encoding;
     }
 
-    public void setEncoding(String encoding) {
+    public FlywayRequest setEncoding(String encoding) {
         this.encoding = encoding;
+        return this;
     }
 
     public Boolean getPlaceholderReplacement() {
         return placeholderReplacement;
     }
 
-    public void setPlaceholderReplacement(Boolean placeholderReplacement) {
+    public FlywayRequest setPlaceholderReplacement(Boolean placeholderReplacement) {
         this.placeholderReplacement = placeholderReplacement;
+        return this;
     }
 
     public Map<String, String> getPlaceholders() {
         return placeholders;
     }
 
-    public void setPlaceholders(Map<String, String> placeholders) {
+    public FlywayRequest setPlaceholders(Map<String, String> placeholders) {
         this.placeholders = placeholders;
+        return this;
     }
 
     public String getPlaceholderPrefix() {
         return placeholderPrefix;
     }
 
-    public void setPlaceholderPrefix(String placeholderPrefix) {
+    public FlywayRequest setPlaceholderPrefix(String placeholderPrefix) {
         this.placeholderPrefix = placeholderPrefix;
+        return this;
     }
 
     public String getPlaceholderSuffix() {
         return placeholderSuffix;
     }
 
-    public void setPlaceholderSuffix(String placeholderSuffix) {
+    public FlywayRequest setPlaceholderSuffix(String placeholderSuffix) {
         this.placeholderSuffix = placeholderSuffix;
+        return this;
     }
 
     public Boolean getSkipDefaultCallResolvers() {
         return skipDefaultCallResolvers;
     }
 
-    public void setSkipDefaultCallResolvers(Boolean skipDefaultCallResolvers) {
+    public FlywayRequest setSkipDefaultCallResolvers(Boolean skipDefaultCallResolvers) {
         this.skipDefaultCallResolvers = skipDefaultCallResolvers;
+        return this;
     }
 
     public Boolean getSkipDefaultCallbacks() {
         return skipDefaultCallbacks;
     }
 
-    public void setSkipDefaultCallbacks(Boolean skipDefaultCallbacks) {
+    public FlywayRequest setSkipDefaultCallbacks(Boolean skipDefaultCallbacks) {
         this.skipDefaultCallbacks = skipDefaultCallbacks;
+        return this;
     }
 
     public String getTarget() {
         return target;
     }
 
-    public void setTarget(String target) {
+    public FlywayRequest setTarget(String target) {
         this.target = target;
+        return this;
     }
 
     public Boolean getOutOfOrder() {
         return outOfOrder;
     }
 
-    public void setOutOfOrder(Boolean outOfOrder) {
+    public FlywayRequest setOutOfOrder(Boolean outOfOrder) {
         this.outOfOrder = outOfOrder;
+        return this;
     }
 
     public Boolean getValidateOnMigrate() {
         return validateOnMigrate;
     }
 
-    public void setValidateOnMigrate(Boolean validateOnMigrate) {
+    public FlywayRequest setValidateOnMigrate(Boolean validateOnMigrate) {
         this.validateOnMigrate = validateOnMigrate;
+        return this;
     }
 
     public Boolean getCleanOnValidationError() {
         return cleanOnValidationError;
     }
 
-    public void setCleanOnValidationError(Boolean cleanOnValidationError) {
+    public FlywayRequest setCleanOnValidationError(Boolean cleanOnValidationError) {
         this.cleanOnValidationError = cleanOnValidationError;
+        return this;
     }
 
     public Boolean getMixed() {
         return mixed;
     }
 
-    public void setMixed(Boolean mixed) {
+    public FlywayRequest setMixed(Boolean mixed) {
         this.mixed = mixed;
+        return this;
     }
 
     public Boolean getGroup() {
         return group;
     }
 
-    public void setGroup(Boolean group) {
+    public FlywayRequest setGroup(Boolean group) {
         this.group = group;
+        return this;
     }
 
     public Boolean getIgnoreMissingMigrations() {
         return ignoreMissingMigrations;
     }
 
-    public void setIgnoreMissingMigrations(Boolean ignoreMissingMigrations) {
+    public FlywayRequest setIgnoreMissingMigrations(Boolean ignoreMissingMigrations) {
         this.ignoreMissingMigrations = ignoreMissingMigrations;
+        return this;
     }
 
     public Boolean getIgnoreIgnoredMigrations() {
         return ignoreIgnoredMigrations;
     }
 
-    public void setIgnoreIgnoredMigrations(Boolean ignoreIgnoredMigrations) {
+    public FlywayRequest setIgnoreIgnoredMigrations(Boolean ignoreIgnoredMigrations) {
         this.ignoreIgnoredMigrations = ignoreIgnoredMigrations;
+        return this;
     }
 
     public Boolean getIgnoreFutureMigrations() {
         return ignoreFutureMigrations;
     }
 
-    public void setIgnoreFutureMigrations(Boolean ignoreFutureMigrations) {
+    public FlywayRequest setIgnoreFutureMigrations(Boolean ignoreFutureMigrations) {
         this.ignoreFutureMigrations = ignoreFutureMigrations;
+        return this;
     }
 
     public Boolean getCleanDisabled() {
         return cleanDisabled;
     }
 
-    public void setCleanDisabled(Boolean cleanDisabled) {
+    public FlywayRequest setCleanDisabled(Boolean cleanDisabled) {
         this.cleanDisabled = cleanDisabled;
+        return this;
     }
 
     public Boolean getBaselineOnMigrate() {
         return baselineOnMigrate;
     }
 
-    public void setBaselineOnMigrate(Boolean baselineOnMigrate) {
+    public FlywayRequest setBaselineOnMigrate(Boolean baselineOnMigrate) {
         this.baselineOnMigrate = baselineOnMigrate;
+        return this;
     }
 
     public String getBaselineVersion() {
         return baselineVersion;
     }
 
-    public void setBaselineVersion(String baselineVersion) {
+    public FlywayRequest setBaselineVersion(String baselineVersion) {
         this.baselineVersion = baselineVersion;
+        return this;
     }
 
     public String getBaselineDescription() {
         return baselineDescription;
     }
 
-    public void setBaselineDescription(String baselineDescription) {
+    public FlywayRequest setBaselineDescription(String baselineDescription) {
         this.baselineDescription = baselineDescription;
+        return this;
     }
 
     public String getInstalledBy() {
         return installedBy;
     }
 
-    public void setInstalledBy(String installedBy) {
+    public FlywayRequest setInstalledBy(String installedBy) {
         this.installedBy = installedBy;
+        return this;
     }
 
     public String getConfigFile() {
         return configFile;
     }
 
-    public void setConfigFile(String configFile) {
+    public FlywayRequest setConfigFile(String configFile) {
         this.configFile = configFile;
+        return this;
     }
 
     public FlywayMethod getFlywayMethod() {
         return flywayMethod;
     }
 
-    public void setFlywayMethod(FlywayMethod flywayMethod) {
+    public FlywayRequest setFlywayMethod(FlywayMethod flywayMethod) {
         this.flywayMethod = flywayMethod;
+        return this;
     }
 
     public static FlywayRequest build(FlywayRequest base) {
         if (base == null) {
             base = new FlywayRequest();
         }
-        base.setConnectRetries(ValueManager.value(
-                base.getConnectRetries(), EnvironmentVars.FLYWAY_CONNECT_RETRIES
-        ));
-        base.setInitSql(ValueManager.value(
-                base.getInitSql(), EnvironmentVars.FLYWAY_INIT_SQL
-        ));
-        base.setSchemas(ValueManager.splitValue(
-                base.getSchemas(), EnvironmentVars.FLYWAY_SCHEMAS
-        ));
-        base.setTable(ValueManager.value(
-                base.getTable(), EnvironmentVars.FLYWAY_TABLE
-        ));
-        base.setTablespace(ValueManager.value(
-                base.getTablespace(), EnvironmentVars.FLYWAY_TABLESPACE
-        ));
-        base.setSqlMigrationPrefix(ValueManager.value(
-                base.getSqlMigrationPrefix(), EnvironmentVars.FLYWAY_SQL_MIGRATION_PREFIX
-        ));
-        base.setSqlMigrationSeparator(ValueManager.value(
-                base.getSqlMigrationSeparator(), EnvironmentVars.FLYWAY_SQL_MIGRATION_SEPARATOR
-        ));
-        base.setRepeatableSqlMigrationPrefix(ValueManager.value(
-                base.getRepeatableSqlMigrationPrefix(), EnvironmentVars.FLYWAY_REPEATABLE_SQL_MIGRATION_PREFIX
-        ));
-        base.setSqlMigrationSuffixes(ValueManager.splitValue(
-                base.getSqlMigrationSuffixes(), EnvironmentVars.FLYWAY_SQL_MIGRATION_SUFFIXES
-        ));
-        base.setEncoding(ValueManager.value(
-                base.getEncoding(), EnvironmentVars.FLYWAY_ENCODING
-        ));
-        base.setPlaceholderReplacement(ValueManager.boolValue(
-                base.getPlaceholderReplacement(), EnvironmentVars.FLYWAY_PLACEHOLDER_REPLACEMENT
-        ));
-        base.setPlaceholders(ValueManager.splitMapValues(
-                base.getPlaceholders(), EnvironmentVars.FLYWAY_PLACEHOLDERS
-        ));
-        base.setPlaceholderPrefix(ValueManager.value(
-                base.getPlaceholderPrefix(), EnvironmentVars.FLYWAY_PLACEHOLDER_PREFIX
-        ));
-        base.setPlaceholderSuffix(ValueManager.value(
-                base.getPlaceholderSuffix(), EnvironmentVars.FLYWAY_PLACEHOLDER_SUFFIX
-        ));
-        base.setSkipDefaultCallResolvers(ValueManager.boolValue(
-                base.getSkipDefaultCallResolvers(), EnvironmentVars.FLYWAY_SKIP_DEFAULT_CALL_RESOLVERS
-        ));
-        base.setSkipDefaultCallbacks(ValueManager.boolValue(
-                base.getSkipDefaultCallbacks(), EnvironmentVars.FLYWAY_SKIP_DEFAULT_CALLBACKS
-        ));
-        base.setTarget(ValueManager.value(
-                base.getTarget(), EnvironmentVars.FLYWAY_TARGET
-        ));
-        base.setOutOfOrder(ValueManager.boolValue(
-                base.getOutOfOrder(), EnvironmentVars.FLYWAY_OUT_OF_ORDER
-        ));
-        base.setValidateOnMigrate(ValueManager.boolValue(
-                base.getValidateOnMigrate(), EnvironmentVars.FLYWAY_VALIDATE_ON_MIGRATE
-        ));
-        base.setCleanOnValidationError(ValueManager.boolValue(
-                base.getCleanOnValidationError(), EnvironmentVars.FLYWAY_CLEAN_ON_VALIDATION_ERROR
-        ));
-        base.setMixed(ValueManager.boolValue(
-                base.getMixed(), EnvironmentVars.FLYWAY_MIXED
-        ));
-        base.setGroup(ValueManager.boolValue(
-                base.getGroup(), EnvironmentVars.FLYWAY_GROUP
-        ));
-        base.setIgnoreMissingMigrations(ValueManager.boolValue(
-                base.getIgnoreMissingMigrations(), EnvironmentVars.FLYWAY_IGNORE_MISSING_MIGRATIONS
-        ));
-        base.setIgnoreIgnoredMigrations(ValueManager.boolValue(
-                base.getIgnoreIgnoredMigrations(), EnvironmentVars.FLYWAY_IGNORE_IGNORED_MIGRATIONS
-        ));
-        base.setIgnoreFutureMigrations(ValueManager.boolValue(
-                base.getIgnoreFutureMigrations(), EnvironmentVars.FLYWAY_IGNORE_FUTURE_MIGRATIONS
-        ));
-        base.setCleanDisabled(ValueManager.boolValue(
-                base.getCleanDisabled(), EnvironmentVars.FLYWAY_CLEAN_DISABLED
-        ));
-        base.setBaselineOnMigrate(ValueManager.boolValue(
-                base.getBaselineOnMigrate(), EnvironmentVars.FLYWAY_BASELINE_ON_MIGRATE
-        ));
-        base.setBaselineVersion(ValueManager.value(
-                base.getBaselineVersion(), EnvironmentVars.FLYWAY_BASELINE_VERSION
-        ));
-        base.setBaselineDescription(ValueManager.value(
-                base.getBaselineDescription(), EnvironmentVars.FLYWAY_BASELINE_DESCRIPTION
-        ));
-        base.setInstalledBy(ValueManager.value(
-                base.getInstalledBy(), EnvironmentVars.FLYWAY_INSTALLED_BY
-        ));
         base.setConfigFile(ValueManager.value(
                 base.getConfigFile(), EnvironmentVars.FLYWAY_CONFIG_FILE
         ));
         base.setFlywayMethod(ValueManager.value(
-                base.getFlywayMethod(), EnvironmentVars.FLYWAY_METHOD
+                base.getFlywayMethod(), EnvironmentVars.FLYWAY_METHOD,
+                v -> v == null ? FlywayMethod.MIGRATE : FlywayMethod.valueOf(v)
         ));
-        if(base.getFlywayMethod() == null) {
-            base.setFlywayMethod(FlywayMethod.MIGRATE);
-        }
 
         return base;
     }
