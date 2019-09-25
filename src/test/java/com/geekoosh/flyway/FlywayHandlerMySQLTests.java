@@ -45,7 +45,6 @@ package com.geekoosh.flyway;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import com.geekoosh.flyway.request.FlywayMethod;
 import com.geekoosh.flyway.request.FlywayRequest;
@@ -57,7 +56,6 @@ import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.io.File;
 import java.util.Arrays;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -75,7 +73,6 @@ public class FlywayHandlerMySQLTests extends GitSSLTestCase {
         environmentVariables.set("GIT_REPOSITORY", getRepoUrl());
         environmentVariables.set("GIT_USERNAME", AppServer.username);
         environmentVariables.set("GIT_PASSWORD", AppServer.password);
-        //environmentVariables.set("GIT_FOLDERS", "migrations/mysql");
         environmentVariables.set("DB_USERNAME", "username");
         environmentVariables.set("DB_PASSWORD", "password");
         environmentVariables.set("DB_CONNECTION_STRING", sqlRule.getConnectionString());
@@ -96,14 +93,6 @@ public class FlywayHandlerMySQLTests extends GitSSLTestCase {
                         )
                 )
         );
-        /*addFilesToMaster(Arrays.asList(
-                new GitFile("V1__init.sql", new File(
-                        getClass().getClassLoader().getResource("migrations/mysql/V1__init.sql").getFile())
-                ),
-                new GitFile("V2__update.sql", new File(
-                        getClass().getClassLoader().getResource("migrations/mysql/V2__update.sql").getFile())
-                )
-        ));*/
 
         FlywayHandler flywayHandler = new FlywayHandler();
         Request request = new Request();
@@ -143,14 +132,6 @@ public class FlywayHandlerMySQLTests extends GitSSLTestCase {
                         )
                 )
         );
-        /*addFilesToMaster(Arrays.asList(
-                new GitFile("V1__init.sql", new File(
-                        getClass().getClassLoader().getResource("migrations/mysql/V1__init.sql").getFile())
-                ),
-                new GitFile("V2__update.sql", new File(
-                        getClass().getClassLoader().getResource("migrations/mysql/V2__update.sql").getFile())
-                )
-        ));*/
         FlywayHandler flywayHandler = new FlywayHandler();
         Request request = new Request().setFlywayRequest(
                 new FlywayRequest().setFlywayMethod(FlywayMethod.BASELINE).setBaselineVersion("1")

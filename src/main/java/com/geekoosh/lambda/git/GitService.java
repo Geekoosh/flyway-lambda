@@ -8,25 +8,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.InitCommand;
 import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.errors.ConfigInvalidException;
-import org.eclipse.jgit.lib.StoredConfig;
-import org.eclipse.jgit.storage.file.FileBasedConfig;
-import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
-import org.eclipse.jgit.util.FS;
-import org.eclipse.jgit.util.SystemReader;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,11 +21,6 @@ import java.util.stream.Collectors;
 public class GitService implements MigrationFilesService{
     private static final Logger logger = LogManager.getLogger(GitService.class);
     private static final String basePath = "/tmp";
-    private static Class<? extends CredentialsProvider> credentialsProviderClass;
-
-    public static void setCredentialsProviderClass(Class<? extends CredentialsProvider> credentialsProviderClass) {
-        GitService.credentialsProviderClass = credentialsProviderClass;
-    }
 
     private File gitDirectory;
     private Git repo;
@@ -50,23 +32,6 @@ public class GitService implements MigrationFilesService{
     }
     public GitService(GitRequest gitRequest) {
         this("gitrepo", gitRequest);
-    }
-
-    public CredentialsProvider credentialsProvider() {
-        try {
-            return GitService.credentialsProviderClass != null ?
-                    GitService.credentialsProviderClass.newInstance() :
-                    new UsernamePasswordCredentialsProvider(
-                        gitRequest.getUsername(), gitRequest.getPassword()
-                    );
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
-        return new UsernamePasswordCredentialsProvider(
-                gitRequest.getUsername(), gitRequest.getPassword()
-        );
     }
 
     private String branchRef() {
@@ -90,7 +55,9 @@ public class GitService implements MigrationFilesService{
 
         CloneCommand cloneCmd = Git.cloneRepository();
         cloneCmd
-                .setCredentialsProvider(credentialsProvider())
+                .setCredentialsProvider(new UsernamePasswordCredentialsProvider(
+                        gitRequest.getUsername(), gitRequest.getPassword()
+                ))
                 .setURI(gitRequest.getGitRepository())
                 .setBranchesToClone(Collections.singletonList(branchRef()))
                 .setBranch(branchRef())
