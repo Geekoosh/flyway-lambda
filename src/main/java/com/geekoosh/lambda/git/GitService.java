@@ -4,16 +4,20 @@ import com.geekoosh.flyway.request.GitRequest;
 import com.geekoosh.lambda.MigrationFilesException;
 import com.geekoosh.lambda.MigrationFilesService;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,9 +38,11 @@ public class GitService implements MigrationFilesService{
         this("gitrepo", gitRequest);
     }
 
+    private String branch() {
+        return gitRequest.getGitBranch() != null ? gitRequest.getGitBranch() : "master";
+    }
     private String branchRef() {
-        return gitRequest.getGitBranch() != null ?
-                "refs/heads/" + gitRequest.getGitBranch() : "refs/heads/master";
+        return String.format("refs/heads/%s", branch());
     }
 
     public void cloneRepo() throws MigrationFilesException {
@@ -82,11 +88,24 @@ public class GitService implements MigrationFilesService{
         }
         return repo;
     }
+    private boolean repoExists() {
+        try {
+            getRepo();
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+    }
 
     public void pullRepo() throws MigrationFilesException {
         try {
             PullCommand pullCommand = getRepo().pull();
-            pullCommand.setRemoteBranchName(branchRef()).setRemote("origin");
+            pullCommand
+                    .setCredentialsProvider(new UsernamePasswordCredentialsProvider(
+                            gitRequest.getUsername(), gitRequest.getPassword()
+                    ));
+                    //.setRemoteBranchName(branchRef())
+                    //.setRemote("origin");
             logger.info("Pulling from branch " + branchRef());
 
             pullCommand.call();
@@ -96,10 +115,20 @@ public class GitService implements MigrationFilesService{
         checkout();
     }
 
+    private String createTempBranchName() throws IOException, GitAPIException {
+        boolean found = true;
+        String branchName = RandomStringUtils.randomAlphabetic(15);
+        while(found) {
+            List<Ref> refs = getRepo().branchList().call();
+            found = refs.stream().anyMatch(ref -> ref.getName().equals(branchName));
+        }
+        return branchName;
+    }
+
     public void checkout() throws MigrationFilesException {
         if(gitRequest.getCommit() != null) {
             try {
-                getRepo().checkout().setStartPoint(gitRequest.getCommit()).call();
+                getRepo().checkout().setCreateBranch(true).setName(createTempBranchName()).setStartPoint(gitRequest.getCommit()).call();
             } catch (GitAPIException | IOException e) {
                 throw new MigrationFilesException("Failed checking out commit " + gitRequest.getCommit(), e);
             }
@@ -107,7 +136,7 @@ public class GitService implements MigrationFilesService{
     }
 
     public void cloneOrPull() throws MigrationFilesException {
-        if(gitDirectory.exists()) {
+        if(repoExists()) {
             pullRepo();
         } else {
             cloneRepo();
@@ -121,6 +150,9 @@ public class GitService implements MigrationFilesService{
             logger.error("Failed deleting existing git directory", e);
             throw new MigrationFilesException("Failed deleting existing git directory", e);
         }
+    }
+    public boolean hasFile(String path) {
+        return Paths.get(gitDirectory.getPath(), path).toFile().exists();
     }
 
     @Override
@@ -158,5 +190,8 @@ public class GitService implements MigrationFilesService{
         } catch(Exception e) {
             throw new MigrationFilesException(e);
         }
+    }
+    public void forceClean() throws MigrationFilesException {
+        removeRepo();
     }
 }

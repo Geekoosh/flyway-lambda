@@ -8,7 +8,9 @@ import org.eclipse.jgit.junit.TestRepository;
 import org.eclipse.jgit.junit.http.AppServer;
 import org.eclipse.jgit.junit.http.HttpTestCase;
 import org.eclipse.jgit.lib.ConfigConstants;
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.transport.*;
 import org.junit.rules.TemporaryFolder;
 
@@ -34,6 +36,10 @@ public class GitSSLTestCase extends HttpTestCase {
     private URIish remoteURI;
 
     private URIish secureURI;
+
+    private Git clientRepo;
+
+    private CredentialsProvider credentialsProvider = new UsernamePasswordCredentialsProvider(AppServer.username, AppServer.password);
 
     public String getRepoUrl() {
         return secureURI.toString();
@@ -113,6 +119,14 @@ public class GitSSLTestCase extends HttpTestCase {
         remoteURI = toURIish(app, srcName);
         secureURI = new URIish(rewriteUrl(remoteURI.toString(), "https",
                 server.getSecurePort()));
+
+        clientRepo = Git.cloneRepository()
+                .setCredentialsProvider(credentialsProvider)
+                .setDirectory(folder.getRoot())
+                .setURI(getRepoUrl())
+                .setBranch(master)
+                .setRemote("origin")
+                .call();
     }
 
     @Override
@@ -127,16 +141,8 @@ public class GitSSLTestCase extends HttpTestCase {
         return new AppServer(0, 0);
     }
 
-    public void pushFilesToMaster(List<GitFile> files) throws Exception {
-        CredentialsProvider credentialsProvider = new UsernamePasswordCredentialsProvider(AppServer.username, AppServer.password); //new GitCredentialsProviderMock();
-        Git repo = Git.cloneRepository()
-                .setCredentialsProvider(credentialsProvider)
-                .setDirectory(folder.getRoot())
-                .setURI(getRepoUrl())
-                .setBranch(master)
-                .setRemote("origin")
-                .call();
-        AddCommand addCommand = repo.add();
+    public ObjectId pushFilesToMaster(List<GitFile> files) throws Exception {
+        AddCommand addCommand = clientRepo.add();
         for(GitFile f : files) {
             Path destPath = Paths.get(folder.getRoot().getPath(), f.getDestPath());
             new File(destPath.toString()).mkdirs();
@@ -144,7 +150,9 @@ public class GitSSLTestCase extends HttpTestCase {
             addCommand.addFilepattern(f.getDestPath());
         }
         addCommand.call();
-        repo.commit().setMessage("committing").call();
-        repo.push().setRemote("origin").setCredentialsProvider(credentialsProvider).call();
+        RevCommit revCommit = clientRepo.commit().setMessage("committing").call();
+        clientRepo.push().setRemote("origin").setCredentialsProvider(credentialsProvider).call();
+
+        return revCommit.getId();
     }
 }

@@ -1,5 +1,5 @@
 group 'com.geekoosh'
-version '0.0.2'
+version '0.0.1'
 
 apply plugin: 'java'
 
@@ -45,8 +45,6 @@ dependencies {
     implementation group: 'com.amazonaws', name: 'aws-java-sdk-secretsmanager'
     testCompile group: 'junit', name: 'junit', version: '4.12'
     testCompile group: 'org.mockito', name: 'mockito-core', version: '2.+'
-    testCompile group: 'org.powermock', name: 'powermock-module-junit4', version: '2.0.2'
-    testCompile group: 'org.powermock', name: 'powermock-api-mockito2', version: '2.0.2'
     testCompile group: 'org.zapodot', name: 'embedded-db-junit', version: '1.1.1'
     testCompile group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.19.0'
     testCompile group: 'com.adobe.testing', name: 's3mock', version: '1.0.4'
@@ -56,7 +54,9 @@ dependencies {
     testCompile group: 'org.eclipse.jetty', name: 'jetty-servlet', version: '9.4.3.v20170317'
     testCompile group: 'org.eclipse.jgit', name: 'org.eclipse.jgit.junit.http', version: '5.5.0.201909110433-r'
     testCompile group: 'com.wix', name: 'wix-embedded-mysql', version: '4.6.0'
-    testCompile group: 'ru.yandex.qatools.embed', name: 'postgresql-embedded', version: '2.10'
+    testCompile group: 'org.testcontainers', name: 'testcontainers', version: '1.12.1'
+    testCompile group: 'org.testcontainers', name: 'postgresql', version: '1.12.1'
+    testCompile group: 'org.testcontainers', name: 'mysql', version: '1.12.1'
 }
 
 task buildZip(type: Zip) {

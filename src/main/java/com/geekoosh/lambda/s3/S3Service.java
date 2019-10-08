@@ -5,10 +5,7 @@ import com.amazonaws.AmazonServiceException;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.transfer.Download;
-import com.amazonaws.services.s3.transfer.Transfer;
-import com.amazonaws.services.s3.transfer.TransferManager;
-import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
+import com.amazonaws.services.s3.transfer.*;
 import com.geekoosh.lambda.MigrationFilesException;
 import com.geekoosh.lambda.MigrationFilesService;
 import org.apache.commons.io.FileUtils;
@@ -68,7 +65,7 @@ public class S3Service implements MigrationFilesService {
     }
     public void download() throws MigrationFilesException {
         TransferManager xfer_mgr = TransferManagerBuilder.standard().withS3Client(S3Service.getS3Client()).build();
-        Download d = xfer_mgr.download(bucket, folder, dataDirectory);
+        MultipleFileDownload d = xfer_mgr.downloadDirectory(bucket, folder, dataDirectory);
         S3Service.waitForCompletion(d);
         Transfer.TransferState xfer_state = d.getState();
         logger.info(xfer_state);

@@ -25,11 +25,6 @@ public class FlywayHandler implements RequestHandler<Request, Response> {
 
     @Override
     public Response handleRequest(Request input, Context context) {
-        // TODO: S3 bucket support
-        // TODO: Config support
-        // TODO: SSM secrets support
-        // TODO: Git clone or reuse with pull
-
         MigrationFilesService migrationFilesService = null;
 
         try {

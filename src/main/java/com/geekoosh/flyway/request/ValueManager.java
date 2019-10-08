@@ -34,6 +34,10 @@ public class ValueManager {
     public final static Function<String, Boolean> booleanFn =
             v -> v != null && (v.equals("1") || v.toLowerCase().equals("true"));
 
+    public static void setClient(AWSSecretsManager client) {
+        ValueManager.client = client;
+    }
+
     private static AWSSecretsManager getClient() {
         if(ValueManager.client == null) {
             String region = new SystemEnvironment().getEnv(EnvironmentVars.AWS_REGION);

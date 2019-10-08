@@ -75,12 +75,14 @@ public class GitRequest {
         return commit;
     }
 
-    public void setCommit(String commit) {
+    public GitRequest setCommit(String commit) {
         this.commit = commit;
+        return this;
     }
 
-    public void setReuseRepo(Boolean reuseRepo) {
+    public GitRequest setReuseRepo(Boolean reuseRepo) {
         this.reuseRepo = reuseRepo;
+        return this;
     }
 
     public static GitRequest build(GitRequest base) {

@@ -44,29 +44,34 @@
 package com.geekoosh.flyway;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import com.geekoosh.flyway.request.FlywayMethod;
 import com.geekoosh.flyway.request.FlywayRequest;
+import com.geekoosh.flyway.request.GitRequest;
 import com.geekoosh.flyway.request.Request;
 import org.eclipse.jgit.junit.http.AppServer;
+import org.eclipse.jgit.lib.ObjectId;
 import org.flywaydb.core.api.MigrationInfo;
 import org.junit.*;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.testcontainers.containers.MySQLContainer;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 @RunWith(MockitoJUnitRunner.class)
 public class FlywayHandlerMySQLTests extends GitSSLTestCase {
     @Rule
-    public final MySQLRule sqlRule = new MySQLRule();
-
-    @Rule
     public final EnvironmentVariables environmentVariables
             = new EnvironmentVariables();
 
+    private void setConnectionString(String connectionString) {
+        environmentVariables.set("DB_CONNECTION_STRING", connectionString);
+    }
     @Before
     public void setUp() throws Exception {
         super.setUp();
@@ -75,82 +80,139 @@ public class FlywayHandlerMySQLTests extends GitSSLTestCase {
         environmentVariables.set("GIT_PASSWORD", AppServer.password);
         environmentVariables.set("DB_USERNAME", "username");
         environmentVariables.set("DB_PASSWORD", "password");
-        environmentVariables.set("DB_CONNECTION_STRING", sqlRule.getConnectionString());
         environmentVariables.set("FLYWAY_METHOD", FlywayMethod.MIGRATE.name());
+    }
+
+    private MySQLContainer mySQLContainer() {
+        return new MySQLContainer<>().withUsername("username").withPassword("password").withDatabaseName("testdb");
     }
 
     @Test
     public void testMigrateMySQL() throws Exception {
-        pushFilesToMaster(
-                Arrays.asList(
-                        new GitFile(
-                                getClass().getClassLoader().getResource("migrations/mysql/V1__init.sql"),
-                                "V1__init.sql"
-                        ),
-                        new GitFile(
-                                getClass().getClassLoader().getResource("migrations/mysql/V2__update.sql"),
-                                "V2__update.sql"
-                        )
-                )
-        );
+        try (MySQLContainer mysql = mySQLContainer()) {
+            mysql.start();
+            setConnectionString(mysql.getJdbcUrl());
 
-        FlywayHandler flywayHandler = new FlywayHandler();
-        Request request = new Request();
-        Response response = flywayHandler.handleRequest(request, null);
-        Assert.assertEquals("2", response.getInfo().current().getVersion().toString());
-        Assert.assertEquals(2, response.getInfo().applied().length);
+            pushFilesToMaster(
+                    Arrays.asList(
+                            new GitFile(
+                                    getClass().getClassLoader().getResource("migrations/mysql/V1__init.sql"),
+                                    "V1__init.sql"
+                            ),
+                            new GitFile(
+                                    getClass().getClassLoader().getResource("migrations/mysql/V2__update.sql"),
+                                    "V2__update.sql"
+                            )
+                    )
+            );
 
-        Connection con= sqlRule.getConnection();
-        Statement stmt=con.createStatement();
-        ResultSet rs=stmt.executeQuery(String.format("describe %s.tasks;", sqlRule.getSchemaName()));
-        rs.next();
-        Assert.assertEquals(rs.getString(1), "task_id");
-        Assert.assertEquals(rs.getString(2), "int(11)");
+            FlywayHandler flywayHandler = new FlywayHandler();
+            Request request = new Request();
+            Response response = flywayHandler.handleRequest(request, null);
+            Assert.assertEquals("2", response.getInfo().current().getVersion().toString());
+            Assert.assertEquals(2, response.getInfo().applied().length);
 
-        rs=stmt.executeQuery(String.format("select * from %s.flyway_schema_history;", sqlRule.getSchemaName()));
-        rs.next();
-        Assert.assertEquals(rs.getInt(1), 1);
-        Assert.assertEquals(rs.getInt(2), 1);
+            Connection con = DriverManager.getConnection(mysql.getJdbcUrl(), "username", "password");
+            Statement stmt = con.createStatement();
+            ResultSet rs = stmt.executeQuery(String.format("describe %s.tasks;", "testdb"));
+            rs.next();
+            Assert.assertEquals(rs.getString(1), "task_id");
+            Assert.assertEquals(rs.getString(2), "int(11)");
 
-        con.close();
+            rs = stmt.executeQuery(String.format("select * from %s.flyway_schema_history;", "testdb"));
+            rs.next();
+            Assert.assertEquals(rs.getInt(1), 1);
+            Assert.assertEquals(rs.getInt(2), 1);
 
-        request.setFlywayRequest(new FlywayRequest().setFlywayMethod(FlywayMethod.CLEAN));
-        response = flywayHandler.handleRequest(request, null);
-        Assert.assertNull(response.getInfo().current());
+            con.close();
+
+            request.setFlywayRequest(new FlywayRequest().setFlywayMethod(FlywayMethod.CLEAN));
+            response = flywayHandler.handleRequest(request, null);
+            Assert.assertNull(response.getInfo().current());
+        }
     }
+
+    @Test
+    public void testMigrateFromCommitMySQL() throws Exception {
+        try (MySQLContainer mysql = mySQLContainer()) {
+            mysql.start();
+            setConnectionString(mysql.getJdbcUrl());
+            ObjectId commitId1 = pushFilesToMaster(
+                    Collections.singletonList(
+                            new GitFile(
+                                    getClass().getClassLoader().getResource("migrations/mysql/V1__init.sql"),
+                                    "V1__init.sql"
+                            )
+                    )
+            );
+            ObjectId commitId2 = pushFilesToMaster(
+                    Collections.singletonList(
+                            new GitFile(
+                                    getClass().getClassLoader().getResource("migrations/mysql/V2__update.sql"),
+                                    "V2__update.sql"
+                            )
+                    )
+            );
+
+            FlywayHandler flywayHandler = new FlywayHandler();
+            Request request = new Request().setGitRequest(new GitRequest().setCommit(commitId1.name()));
+            Response response = flywayHandler.handleRequest(request, null);
+            MigrationInfo[] migrationInfos = response.getInfo().applied();
+
+            Assert.assertEquals("1", response.getInfo().current().getVersion().toString());
+            Assert.assertEquals(1, migrationInfos.length);
+
+            Assert.assertEquals("V1__init.sql", migrationInfos[0].getScript());
+
+            request = new Request().setGitRequest(new GitRequest().setCommit(commitId2.name()));
+            response = flywayHandler.handleRequest(request, null);
+            migrationInfos = response.getInfo().applied();
+
+            Assert.assertEquals("2", response.getInfo().current().getVersion().toString());
+            Assert.assertEquals(2, migrationInfos.length);
+
+            Assert.assertEquals("V1__init.sql", migrationInfos[0].getScript());
+            Assert.assertEquals("V2__update.sql", migrationInfos[1].getScript());
+        }
+    }
+
     @Test
     public void testBaselineMySQL() throws Exception {
-        pushFilesToMaster(
-                Arrays.asList(
-                        new GitFile(
-                                getClass().getClassLoader().getResource("migrations/mysql/V1__init.sql"),
-                                "V1__init.sql"
-                        ),
-                        new GitFile(
-                                getClass().getClassLoader().getResource("migrations/mysql/V2__update.sql"),
-                                "V2__update.sql"
-                        )
-                )
-        );
-        FlywayHandler flywayHandler = new FlywayHandler();
-        Request request = new Request().setFlywayRequest(
-                new FlywayRequest().setFlywayMethod(FlywayMethod.BASELINE).setBaselineVersion("1")
-        );
-        Response response = flywayHandler.handleRequest(request, null);
-        Assert.assertEquals("1", response.getInfo().current().getVersion().toString());
-        MigrationInfo[] migrationInfos = response.getInfo().applied();
-        Assert.assertEquals("<< Flyway Baseline >>", migrationInfos[0].getScript());
-        Assert.assertEquals(1, migrationInfos.length);
+        try (MySQLContainer mysql = mySQLContainer()) {
+            mysql.start();
+            setConnectionString(mysql.getJdbcUrl());
+            pushFilesToMaster(
+                    Arrays.asList(
+                            new GitFile(
+                                    getClass().getClassLoader().getResource("migrations/mysql/V1__init.sql"),
+                                    "V1__init.sql"
+                            ),
+                            new GitFile(
+                                    getClass().getClassLoader().getResource("migrations/mysql/V2__update.sql"),
+                                    "V2__update.sql"
+                            )
+                    )
+            );
+            FlywayHandler flywayHandler = new FlywayHandler();
+            Request request = new Request().setFlywayRequest(
+                    new FlywayRequest().setFlywayMethod(FlywayMethod.BASELINE).setBaselineVersion("1")
+            );
+            Response response = flywayHandler.handleRequest(request, null);
+            Assert.assertEquals("1", response.getInfo().current().getVersion().toString());
+            MigrationInfo[] migrationInfos = response.getInfo().applied();
+            Assert.assertEquals("<< Flyway Baseline >>", migrationInfos[0].getScript());
+            Assert.assertEquals(1, migrationInfos.length);
 
-        flywayHandler = new FlywayHandler();
-        request = new Request().setFlywayRequest(
-                new FlywayRequest().setFlywayMethod(FlywayMethod.MIGRATE)
-        );
-        response = flywayHandler.handleRequest(request, null);
-        migrationInfos = response.getInfo().applied();
-        Assert.assertEquals("2", response.getInfo().current().getVersion().toString());
-        Assert.assertEquals(2, migrationInfos.length);
-        Assert.assertEquals("<< Flyway Baseline >>", migrationInfos[0].getScript());
-        Assert.assertEquals("V2__update.sql", migrationInfos[1].getScript());
+            flywayHandler = new FlywayHandler();
+            request = new Request().setFlywayRequest(
+                    new FlywayRequest().setFlywayMethod(FlywayMethod.MIGRATE)
+            );
+            response = flywayHandler.handleRequest(request, null);
+            migrationInfos = response.getInfo().applied();
+            Assert.assertEquals("2", response.getInfo().current().getVersion().toString());
+            Assert.assertEquals(2, migrationInfos.length);
+            Assert.assertEquals("<< Flyway Baseline >>", migrationInfos[0].getScript());
+            Assert.assertEquals("V2__update.sql", migrationInfos[1].getScript());
+        }
     }
 }
