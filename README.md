@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/Geekoosh/flyway-lambda.svg?branch=master)](https://travis-ci.org/Geekoosh/flyway-lambda)
+
 ## Migration files
 Lambda supports fetching files from s3 bucket or git
 
