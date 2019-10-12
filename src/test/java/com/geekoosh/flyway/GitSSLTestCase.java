@@ -47,10 +47,15 @@ public class GitSSLTestCase extends HttpTestCase {
 
     public class GitFile {
         private File file;
+        private String content;
         private String destPath;
 
         public GitFile(URL resource, String destPath) {
             this.file = new File(resource.getFile());
+            this.destPath = destPath;
+        }
+        public GitFile(String content, String destPath) {
+            this.content = content;
             this.destPath = destPath;
         }
 
@@ -60,6 +65,10 @@ public class GitSSLTestCase extends HttpTestCase {
 
         public String getDestPath() {
             return destPath;
+        }
+
+        public String getContent() {
+            return content;
         }
     }
 
@@ -145,8 +154,13 @@ public class GitSSLTestCase extends HttpTestCase {
         AddCommand addCommand = clientRepo.add();
         for(GitFile f : files) {
             Path destPath = Paths.get(folder.getRoot().getPath(), f.getDestPath());
-            new File(destPath.toString()).mkdirs();
-            Files.copy(Paths.get(f.getFile().getPath()), destPath, StandardCopyOption.REPLACE_EXISTING);
+            if(f.getFile() != null) {
+                new File(destPath.toString()).mkdirs();
+                Files.copy(Paths.get(f.getFile().getPath()), destPath, StandardCopyOption.REPLACE_EXISTING);
+            } else {
+                new File(destPath.getParent().toString()).mkdirs();
+                Files.write(destPath, f.getContent().getBytes());
+            }
             addCommand.addFilepattern(f.getDestPath());
         }
         addCommand.call();

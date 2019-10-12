@@ -7,4 +7,5 @@ public interface MigrationFilesService {
     void prepare() throws MigrationFilesException;
     List<String> getFolders();
     void clean() throws MigrationFilesException;
+    String getPath(String path);
 }

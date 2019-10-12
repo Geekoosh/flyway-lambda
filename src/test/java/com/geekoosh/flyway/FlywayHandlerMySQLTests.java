@@ -43,6 +43,8 @@
 
 package com.geekoosh.flyway;
 
+import java.io.FileWriter;
+import java.io.StringWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -62,6 +64,7 @@ import org.testcontainers.containers.MySQLContainer;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Properties;
 
 @RunWith(MockitoJUnitRunner.class)
 public class FlywayHandlerMySQLTests extends GitSSLTestCase {
@@ -129,6 +132,48 @@ public class FlywayHandlerMySQLTests extends GitSSLTestCase {
             request.setFlywayRequest(new FlywayRequest().setFlywayMethod(FlywayMethod.CLEAN));
             response = flywayHandler.handleRequest(request, null);
             Assert.assertNull(response.getInfo().current());
+        }
+    }
+
+    @Test
+    public void testMigrateWithConfig() throws Exception {
+        try (MySQLContainer mysql = mySQLContainer()) {
+            mysql.start();
+            setConnectionString(mysql.getJdbcUrl());
+
+            environmentVariables.set("FLYWAY_CONFIG_FILE", "file://flyway/config.props");
+
+            Properties confProps = new Properties();
+            confProps.setProperty("flyway.sqlMigrationPrefix", "P");
+            StringWriter writer = new StringWriter();
+            confProps.store(writer, "flyway");
+
+            pushFilesToMaster(
+                    Arrays.asList(
+                            new GitFile(
+                                    writer.toString(),
+                                    "flyway/config.props"
+                            ),
+                            new GitFile(
+                                    getClass().getClassLoader().getResource("migrations/mysql/V1__init.sql"),
+                                    "P1__init.sql"
+                            ),
+                            new GitFile(
+                                    getClass().getClassLoader().getResource("migrations/mysql/V2__update.sql"),
+                                    "P2__update.sql"
+                            )
+                    )
+            );
+            FlywayHandler flywayHandler = new FlywayHandler();
+            Request request = new Request();
+            Response response = flywayHandler.handleRequest(request, null);
+            MigrationInfo[] migrationInfos = response.getInfo().applied();
+            Assert.assertEquals("2", response.getInfo().current().getVersion().toString());
+            Assert.assertEquals(2, migrationInfos.length);
+            Assert.assertEquals("P1__init.sql", migrationInfos[0].getScript());
+            Assert.assertEquals("P2__update.sql", migrationInfos[1].getScript());
+        } finally {
+            environmentVariables.clear("FLYWAY_CONFIG_FILE");
         }
     }
 

@@ -1,0 +1,49 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: RDS instance
+Parameters:
+  VPC:
+    Type: AWS::EC2::VPC::Id
+  Subnets:
+    Type: List<AWS::EC2::Subnet::Id>
+  Username:
+    Type: String
+    NoEcho: true
+  Password:
+    Type: String
+    NoEcho: true
+  DBName:
+    Type: String
+    Default: postgres
+  InstanceType:
+    Type: String
+    Default: db.m4.large
+Resources:
+  DB:
+    Properties:
+      AllowMajorVersionUpgrade: true
+      AutoMinorVersionUpgrade: true
+      DBInstanceClass: !Ref InstanceType
+      DBName: !Ref DBName
+      DBSubnetGroupName:
+        Ref: DBSubnetGroup
+      Engine: postgres
+      EngineVersion: '11.5'
+      MasterUserPassword: !Ref Password
+      MasterUsername: !Ref Username
+      StorageType: gp2
+      VPCSecurityGroups:
+        - Ref: DBSecurityGroup
+    Type: AWS::RDS::DBInstance
+
+  DBSecurityGroup:
+    Properties:
+      GroupDescription: Postgres Security Group
+      VpcId:
+        Ref: VPC
+    Type: AWS::EC2::SecurityGroup
+
+  DBSubnetGroup:
+    Properties:
+      DBSubnetGroupDescription: Subnets available for the RDS DB Instance
+      SubnetIds: !Ref Subnets
+    Type: AWS::RDS::DBSubnetGroup

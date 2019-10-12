@@ -29,10 +29,12 @@ public class FlywayService {
     private FlywayRequest flywayRequest;
     private DBRequest dbRequest;
     private List<String> folders;
+    private MigrationFilesService migrationFilesService;
 
     public FlywayService(FlywayRequest flywayRequest, DBRequest dbRequest, MigrationFilesService migrationFilesService) {
         this.flywayRequest = flywayRequest;
         this.dbRequest = dbRequest;
+        this.migrationFilesService = migrationFilesService;
         if(migrationFilesService != null) {
             this.folders = migrationFilesService.getFolders();
         }
@@ -40,6 +42,7 @@ public class FlywayService {
 
     private InputStream urlStream(String url) throws IOException {
         String S3_PREFIX = "s3://";
+        String LOCAL_PREFIX = "file://";
         if(url.startsWith(S3_PREFIX)) {
             url = url.substring(S3_PREFIX.length());
             String[] parts = url.split("/");
@@ -47,6 +50,8 @@ public class FlywayService {
             String path = String.join("/", Arrays.copyOfRange(parts, 1, parts.length));
             S3Object s3object = S3Service.getS3Client().getObject(bucket, path);
             return s3object.getObjectContent();
+        } else if(url.startsWith(LOCAL_PREFIX)) {
+            return new FileInputStream(this.migrationFilesService.getPath(url.substring(LOCAL_PREFIX.length())));
         } else {
             return new URL(url).openStream();
         }

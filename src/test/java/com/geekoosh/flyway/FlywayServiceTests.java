@@ -18,8 +18,7 @@ import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.zapodot.junit.db.CompatibilityMode;
-import org.zapodot.junit.db.EmbeddedDatabaseRule;
+import org.testcontainers.containers.MySQLContainer;
 
 import static org.junit.Assert.*;
 
@@ -31,11 +30,6 @@ import java.util.stream.Stream;
 
 @RunWith(MockitoJUnitRunner.class)
 public class FlywayServiceTests {
-    @Rule
-    public final EmbeddedDatabaseRule dbRule = EmbeddedDatabaseRule
-            .builder()
-            .withMode(CompatibilityMode.MySQL)
-            .build();
     @Rule
     public final EnvironmentVariables environmentVariables
             = new EnvironmentVariables();
@@ -54,13 +48,18 @@ public class FlywayServiceTests {
         s3.putObject("Bucket-1", "flyway/bad-config.props", "vary bad string");
     }
 
+    private MySQLContainer mySQLContainer() {
+        return new MySQLContainer<>().withUsername("username").withPassword("password").withDatabaseName("testdb");
+    }
+
     @Test
     public void testConfigure() throws IOException {
         MigrationFilesService migrationFilesService = Mockito.mock(GitService.class);
         Mockito.when(migrationFilesService.getFolders()).thenReturn(Arrays.asList("folder1", "folder2"));
-        try {
+        try (MySQLContainer mysql = mySQLContainer()) {
+            mysql.start();
             S3Service.setAmazonS3(s3);
-            String connectionString = dbRule.getConnectionJdbcUrl();
+            String connectionString = mysql.getJdbcUrl();
             DBRequest dbRequest = new DBRequest().setUsername("user").setPassword("password").setConnectionString(connectionString);
 
             FlywayService flywayService = new FlywayService(
@@ -110,15 +109,21 @@ public class FlywayServiceTests {
 
     @Test(expected = com.amazonaws.services.s3.model.AmazonS3Exception.class)
     public void testConfigurationNotFound() throws IOException {
-        environmentVariables.set("FLYWAY_CONFIG_FILE", "s3://Bucket-1/flyway/config-not-there.props");
-        String connectionString = dbRule.getConnectionJdbcUrl();
-        DBRequest dbRequest = new DBRequest().setUsername("user").setPassword("password").setConnectionString(connectionString);
+        try (MySQLContainer mysql = mySQLContainer()) {
+            mysql.start();
 
-        FlywayService flywayService = new FlywayService(
-                FlywayRequest.build(null),
-                dbRequest,
-                null
-        );
-        flywayService.configure();
+            environmentVariables.set("FLYWAY_CONFIG_FILE", "s3://Bucket-1/flyway/config-not-there.props");
+            String connectionString = mysql.getJdbcUrl();
+            DBRequest dbRequest = new DBRequest().setUsername("user").setPassword("password").setConnectionString(connectionString);
+
+            FlywayService flywayService = new FlywayService(
+                    FlywayRequest.build(null),
+                    dbRequest,
+                    null
+            );
+            flywayService.configure();
+        } finally {
+            environmentVariables.clear("FLYWAY_CONFIG_FILE");
+        }
     }
 }

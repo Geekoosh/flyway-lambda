@@ -95,4 +95,9 @@ public class S3Service implements MigrationFilesService {
             throw new MigrationFilesException("Failed deleting existing s3 directory", e);
         }
     }
+
+    @Override
+    public String getPath(String path) {
+        return null;
+    }
 }

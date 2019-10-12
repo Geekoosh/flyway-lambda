@@ -178,7 +178,7 @@ public class GitService implements MigrationFilesService{
         return gitRequest.getFolders().size() == 0 ?
                 Collections.singletonList(gitDirectory.getPath()) :
                     gitRequest.getFolders()
-                    .stream().map(folder -> gitDirectory.getPath() + "/" + folder).collect(Collectors.toList());
+                    .stream().map(this::getPath).collect(Collectors.toList());
     }
 
     @Override
@@ -191,6 +191,12 @@ public class GitService implements MigrationFilesService{
             throw new MigrationFilesException(e);
         }
     }
+
+    @Override
+    public String getPath(String path) {
+        return Paths.get(gitDirectory.getPath(), path).toString();
+    }
+
     public void forceClean() throws MigrationFilesException {
         removeRepo();
     }
