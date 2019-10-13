@@ -66,11 +66,6 @@ public class GitRequest {
         return reuseRepo;
     }
 
-    public GitRequest setReuseRepo(boolean reuseRepo) {
-        this.reuseRepo = reuseRepo;
-        return this;
-    }
-
     public String getCommit() {
         return commit;
     }

@@ -69,7 +69,7 @@ public class S3Service implements MigrationFilesService {
         S3Service.waitForCompletion(d);
         Transfer.TransferState xfer_state = d.getState();
         logger.info(xfer_state);
-        xfer_mgr.shutdownNow();
+        xfer_mgr.shutdownNow(false);
     }
 
     @Override

@@ -47,7 +47,6 @@ public class DBRequest {
             JSONObject json = ValueManager.latestSecretJson(dbSecret);
             base.setUsername(json.getString("username"));
             base.setPassword(json.getString("password"));
-            logger.info(String.format("Using secret git variables: %s, %s", base.getUsername(), base.getPassword()));
         } else {
             base.setUsername(ValueManager.value(
                     base.getUsername(), EnvironmentVars.DB_USERNAME

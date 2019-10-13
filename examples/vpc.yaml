@@ -58,6 +58,18 @@ Resources:
         Ref: VPC
     Type: AWS::EC2::Subnet
 
+  PrivateSubnet2:
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+          - 1
+          - Fn::GetAZs:
+              Ref: AWS::Region
+      CidrBlock: !Join [ ".", [ !Select [ 0, !Split [".", !Ref CIDR] ], !Select [ 1, !Split [".", !Ref CIDR] ], '2.0/24' ] ]
+      VpcId:
+        Ref: VPC
+    Type: AWS::EC2::Subnet
+
   PrivateRouteTable:
     Properties:
       VpcId:
@@ -70,6 +82,14 @@ Resources:
         Ref: PrivateRouteTable
       SubnetId:
         Ref: PrivateSubnet
+    Type: AWS::EC2::SubnetRouteTableAssociation
+
+  PrivateSubnetRouteTableAssociation2:
+    Properties:
+      RouteTableId:
+        Ref: PrivateRouteTable
+      SubnetId:
+        Ref: PrivateSubnet2
     Type: AWS::EC2::SubnetRouteTableAssociation
 
   PublicSubnet:

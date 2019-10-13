@@ -51,6 +51,7 @@ import com.amazonaws.services.secretsmanager.model.GetSecretValueResult;
 import com.geekoosh.flyway.request.FlywayMethod;
 import com.geekoosh.flyway.request.Request;
 import com.geekoosh.flyway.request.ValueManager;
+import com.geekoosh.flyway.response.Response;
 import com.geekoosh.lambda.s3.S3Service;
 import org.json.JSONObject;
 import org.junit.*;
@@ -101,8 +102,8 @@ public class FlywayHandlerPostgresTests {
 
             FlywayHandler flywayHandler = new FlywayHandler();
             Response response = flywayHandler.handleRequest(new Request(), null);
-            Assert.assertEquals("1", response.getInfo().current().getVersion().toString());
-            Assert.assertEquals(1, response.getInfo().applied().length);
+            Assert.assertEquals("1", response.getInfo().getCurrent().getVersion().toString());
+            Assert.assertEquals(1, response.getInfo().getApplied().length);
 
             Connection con = DriverManager.getConnection(connectionString, "username", "password");
             Statement stmt = con.createStatement();

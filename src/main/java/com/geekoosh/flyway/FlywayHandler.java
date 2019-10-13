@@ -3,15 +3,11 @@ package com.geekoosh.flyway;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.geekoosh.flyway.request.*;
+import com.geekoosh.flyway.response.Response;
 import com.geekoosh.lambda.MigrationFilesException;
 import com.geekoosh.lambda.MigrationFilesService;
 import com.geekoosh.lambda.git.GitService;
 import com.geekoosh.lambda.s3.S3Service;
-import org.apache.commons.io.FileUtils;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -53,7 +49,9 @@ public class FlywayHandler implements RequestHandler<Request, Response> {
 
             FlywayService flywayService = new FlywayService(flywayRequest, dbRequest, migrationFilesService);
 
-            return new Response(flywayService.call());
+            Response response = new Response(flywayService.call());
+            response.log();
+            return response;
         } catch(Exception e) {
             logger.error(e.getMessage(), e);
             throw new RuntimeException(e);

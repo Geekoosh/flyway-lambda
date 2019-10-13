@@ -43,7 +43,6 @@
 
 package com.geekoosh.flyway;
 
-import java.io.FileWriter;
 import java.io.StringWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -53,6 +52,7 @@ import com.geekoosh.flyway.request.FlywayMethod;
 import com.geekoosh.flyway.request.FlywayRequest;
 import com.geekoosh.flyway.request.GitRequest;
 import com.geekoosh.flyway.request.Request;
+import com.geekoosh.flyway.response.Response;
 import org.eclipse.jgit.junit.http.AppServer;
 import org.eclipse.jgit.lib.ObjectId;
 import org.flywaydb.core.api.MigrationInfo;
@@ -112,8 +112,8 @@ public class FlywayHandlerMySQLTests extends GitSSLTestCase {
             FlywayHandler flywayHandler = new FlywayHandler();
             Request request = new Request();
             Response response = flywayHandler.handleRequest(request, null);
-            Assert.assertEquals("2", response.getInfo().current().getVersion().toString());
-            Assert.assertEquals(2, response.getInfo().applied().length);
+            Assert.assertEquals("2", response.getInfo().getCurrent().getVersion().toString());
+            Assert.assertEquals(2, response.getInfo().getApplied().length);
 
             Connection con = DriverManager.getConnection(mysql.getJdbcUrl(), "username", "password");
             Statement stmt = con.createStatement();
@@ -131,7 +131,7 @@ public class FlywayHandlerMySQLTests extends GitSSLTestCase {
 
             request.setFlywayRequest(new FlywayRequest().setFlywayMethod(FlywayMethod.CLEAN));
             response = flywayHandler.handleRequest(request, null);
-            Assert.assertNull(response.getInfo().current());
+            Assert.assertNull(response.getInfo().getCurrent());
         }
     }
 
@@ -167,8 +167,8 @@ public class FlywayHandlerMySQLTests extends GitSSLTestCase {
             FlywayHandler flywayHandler = new FlywayHandler();
             Request request = new Request();
             Response response = flywayHandler.handleRequest(request, null);
-            MigrationInfo[] migrationInfos = response.getInfo().applied();
-            Assert.assertEquals("2", response.getInfo().current().getVersion().toString());
+            MigrationInfo[] migrationInfos = response.getInfo().getApplied();
+            Assert.assertEquals("2", response.getInfo().getCurrent().getVersion().toString());
             Assert.assertEquals(2, migrationInfos.length);
             Assert.assertEquals("P1__init.sql", migrationInfos[0].getScript());
             Assert.assertEquals("P2__update.sql", migrationInfos[1].getScript());
@@ -202,18 +202,18 @@ public class FlywayHandlerMySQLTests extends GitSSLTestCase {
             FlywayHandler flywayHandler = new FlywayHandler();
             Request request = new Request().setGitRequest(new GitRequest().setCommit(commitId1.name()));
             Response response = flywayHandler.handleRequest(request, null);
-            MigrationInfo[] migrationInfos = response.getInfo().applied();
+            MigrationInfo[] migrationInfos = response.getInfo().getApplied();
 
-            Assert.assertEquals("1", response.getInfo().current().getVersion().toString());
+            Assert.assertEquals("1", response.getInfo().getCurrent().getVersion().toString());
             Assert.assertEquals(1, migrationInfos.length);
 
             Assert.assertEquals("V1__init.sql", migrationInfos[0].getScript());
 
             request = new Request().setGitRequest(new GitRequest().setCommit(commitId2.name()));
             response = flywayHandler.handleRequest(request, null);
-            migrationInfos = response.getInfo().applied();
+            migrationInfos = response.getInfo().getApplied();
 
-            Assert.assertEquals("2", response.getInfo().current().getVersion().toString());
+            Assert.assertEquals("2", response.getInfo().getCurrent().getVersion().toString());
             Assert.assertEquals(2, migrationInfos.length);
 
             Assert.assertEquals("V1__init.sql", migrationInfos[0].getScript());
@@ -243,8 +243,8 @@ public class FlywayHandlerMySQLTests extends GitSSLTestCase {
                     new FlywayRequest().setFlywayMethod(FlywayMethod.BASELINE).setBaselineVersion("1")
             );
             Response response = flywayHandler.handleRequest(request, null);
-            Assert.assertEquals("1", response.getInfo().current().getVersion().toString());
-            MigrationInfo[] migrationInfos = response.getInfo().applied();
+            Assert.assertEquals("1", response.getInfo().getCurrent().getVersion().toString());
+            MigrationInfo[] migrationInfos = response.getInfo().getApplied();
             Assert.assertEquals("<< Flyway Baseline >>", migrationInfos[0].getScript());
             Assert.assertEquals(1, migrationInfos.length);
 
@@ -253,8 +253,8 @@ public class FlywayHandlerMySQLTests extends GitSSLTestCase {
                     new FlywayRequest().setFlywayMethod(FlywayMethod.MIGRATE)
             );
             response = flywayHandler.handleRequest(request, null);
-            migrationInfos = response.getInfo().applied();
-            Assert.assertEquals("2", response.getInfo().current().getVersion().toString());
+            migrationInfos = response.getInfo().getApplied();
+            Assert.assertEquals("2", response.getInfo().getCurrent().getVersion().toString());
             Assert.assertEquals(2, migrationInfos.length);
             Assert.assertEquals("<< Flyway Baseline >>", migrationInfos[0].getScript());
             Assert.assertEquals("V2__update.sql", migrationInfos[1].getScript());

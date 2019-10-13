@@ -1,6 +1,8 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: flyway lambda with migration scripts in S3
 Parameters:
+  VPC:
+    Type: AWS::EC2::VPC::Id
   Subnets:
     Type: List<AWS::EC2::Subnet::Id>
   S3Bucket:
@@ -40,7 +42,24 @@ Resources:
                   - "s3:GetObjectAcl"
                   - "s3:ListBucket"
                 Resource:
+                  - !Sub "arn:aws:s3:::${S3Bucket}"
                   - !Sub "arn:aws:s3:::${S3Bucket}/*"
+
+  FlywayLambdaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Flyway lambda security group to access VPC
+      VpcId: !Ref VPC
+
+  DBFlywaySgRule:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      IpProtocol: tcp
+      FromPort: 5432
+      ToPort: 5432
+      SourceSecurityGroupId: !GetAtt FlywayLambdaSecurityGroup.GroupId
+      GroupId: !Ref RDSSecurityGroup
+
   FlywayLambda:
     Type: AWS::Lambda::Function
     Properties:
@@ -59,5 +78,5 @@ Resources:
       Timeout: 120
       VpcConfig:
         SecurityGroupIds:
-          - !Ref RDSSecurityGroup
+          - !Ref FlywayLambdaSecurityGroup
         SubnetIds: !Ref Subnets
