@@ -60,10 +60,12 @@ public class GitService implements MigrationFilesService{
         logger.info("Fetching from branch " + branchRef());
 
         CloneCommand cloneCmd = Git.cloneRepository();
+        if(gitRequest.getUsername() != null && gitRequest.getPassword() != null) {
+            cloneCmd = cloneCmd.setCredentialsProvider(new UsernamePasswordCredentialsProvider(
+                    gitRequest.getUsername(), gitRequest.getPassword()
+            ));
+        }
         cloneCmd
-                .setCredentialsProvider(new UsernamePasswordCredentialsProvider(
-                        gitRequest.getUsername(), gitRequest.getPassword()
-                ))
                 .setURI(gitRequest.getGitRepository())
                 .setBranchesToClone(Collections.singletonList(branchRef()))
                 .setBranch(branchRef())
