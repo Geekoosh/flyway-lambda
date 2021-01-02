@@ -89,8 +89,8 @@ public class GitRequest {
         String gitSecret = systemEnvironment.getEnv(SecretVars.GIT_SECRET);
         if(gitSecret != null) {
             JSONObject json = ValueManager.latestSecretJson(gitSecret);
-            base.setUsername(json.getString("username"));
-            base.setPassword(json.getString("password"));
+            base.setUsername(json.get("username").toString());
+            base.setPassword(json.get("password").toString());
 
             logger.info("Using secret git variables");
         } else {
