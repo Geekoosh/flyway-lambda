@@ -17,6 +17,7 @@ Resources:
   DBSecret:
     Type: AWS::SecretsManager::Secret
     Properties:
+      Name: !Join ["-", [!Ref AWS::StackName, "Secret"]]
       Description: 'Postgres password'
       GenerateSecretString:
         SecretStringTemplate: !Sub '{"username": "${Username}"}'
@@ -65,5 +66,7 @@ Outputs:
     Value: !Ref DBSecurityGroup
   DBSecretArn:
     Value: !Ref DBSecret
+  DBSecretName:
+    Value: !Join ["-", [!Ref AWS::StackName, "Secret"]]
   Endpoint:
     Value: !GetAtt DB.Endpoint.Address

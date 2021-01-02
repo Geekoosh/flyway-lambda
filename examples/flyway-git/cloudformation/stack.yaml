@@ -14,7 +14,9 @@ Parameters:
     NoEcho: true
   GitRepo:
     Type: String
-
+  GitFolders:
+    Type: String
+    Default: ''
 Resources: 
   VPC:
     Properties:
@@ -40,10 +42,12 @@ Resources:
         Subnets: !GetAtt VPC.Outputs.PrivateSubnets
         RDSSecurityGroup: !GetAtt DB.Outputs.DBSecurityGroup
         DBSecretArn: !GetAtt DB.Outputs.DBSecretArn
+        DBSecretName: !GetAtt DB.Outputs.DBSecretName
         ConnectionString: !Join ["", ["jdbc:postgresql://", !GetAtt DB.Outputs.Endpoint, "/", !Ref DBName]]
         GitUser: !Ref GitUser
         GitPassword: !Ref GitPassword
         GitRepo: !Ref GitRepo
+        GitFolders: !Ref GitFolders
       TemplateURL: flyway-git.yaml
       TimeoutInMinutes: '60'
     Type: AWS::CloudFormation::Stack

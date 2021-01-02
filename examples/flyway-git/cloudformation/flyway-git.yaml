@@ -9,6 +9,8 @@ Parameters:
     Type: AWS::EC2::SecurityGroup::Id
   DBSecretArn:
     Type: String
+  DBSecretName:
+    Type: String
   ConnectionString:
     Type: String
     NoEcho: true
@@ -20,10 +22,14 @@ Parameters:
     NoEcho: true
   GitRepo:
     Type: String
+  GitFolders:
+    Type: String
+    Default: ''
 Resources:
   GitSecret:
     Type: 'AWS::SecretsManager::Secret'
     Properties:
+      Name: !Join ["-", [!Ref AWS::StackName, "Secret"]]
       Description: Flyway lambda git repo secrets
       SecretString: !Sub '{"username": ${GitUser},"password": ${GitPassword}}'
 
@@ -51,9 +57,7 @@ Resources:
                 Action:
                   - "secretsmanager:DescribeSecret"
                   - "secretsmanager:GetSecretValue"
-                Resource: 
-                  - !Ref DBSecretArn
-                  - !Ref GitSecret
+                Resource: "*"
 
   FlywayLambdaSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -78,10 +82,11 @@ Resources:
       Description: Flyway lambda
       Environment:
         Variables:
-          DB_SECRET: !Select [6, !Split [":", !Ref DBSecretArn]]
-          GIT_SECRET: !Select [6, !Split [":", !Ref GitSecret]]
+          DB_SECRET: !Ref DBSecretName
+          GIT_SECRET: !Join ["-", [!Ref AWS::StackName, "Secret"]]
           DB_CONNECTION_STRING: !Ref ConnectionString
           GIT_REPOSITORY: !Ref GitRepo
+          GIT_FOLDERS: !Ref GitFolders
       Handler: com.geekoosh.flyway.FlywayHandler::handleRequest
       MemorySize: 256
       Role: !GetAtt FlywayLambdaExecutionRole.Arn

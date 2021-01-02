@@ -23,6 +23,9 @@ while [ $# -gt 0 ]; do
     --git-repo)
       git_repo="$2"
       ;;
+    --git-folders)
+      git_folders="$2"
+      ;;
     *)
       printf "***************************\n"
       printf "* Error: Invalid argument.*\n"
@@ -43,7 +46,5 @@ aws cloudformation package --template-file ./stack.yaml --output-template-file .
 
 echo "Deploying CloudFormation templates"
 aws cloudformation deploy --template-file ./stack-out.yaml --stack-name $stack_name \
-  --parameter-overrides DBName=$db_name Username=$db_user GitUser=$git_user GitPassword=$git_pass GitRepo=$git_repo \
+  --parameter-overrides DBName=$db_name Username=$db_user GitUser=$git_user GitPassword=$git_pass GitRepo=$git_repo GitFolders=$git_folders \
   --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM
-
-#aws cloudformation describe-stack-events --stack-name $stack_name
