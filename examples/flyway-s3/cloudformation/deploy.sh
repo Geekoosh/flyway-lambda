@@ -2,7 +2,7 @@
 
 Help()
 {
-   echo "Syntax: deploy.sh --stack [stack name] --bucket [cloudformation s3 bucket] --db-name [database name] --db-user [database username] --git-repo [git repo url] --git-user [git repo user] [--git-pass [password for private repo]] [--git-folders [folders with migration scripts within repo]]"
+   echo "Syntax: deploy.sh --stack [stack name] --bucket [cloudformation s3 bucket] --db-name [database name] --db-user [database username] --migration-bucket [s3 bucket with flyway migration scripts]"
    echo
 }
 
@@ -29,18 +29,12 @@ while [ $# -gt 0 ]; do
     --db-user)
       db_user="$2"
       ;;
-    --git-user)
-      git_user="$2"
+    --migration-bucket)
+      migration_bucket="$2"
       ;;
-    --git-pass)
-      git_pass="$2"
-      ;;
-    --git-repo)
-      git_repo="$2"
-      ;;
-    --git-folders)
-      git_folders="$2"
-      ;;
+    --h)
+      Help
+      exit;;
     *)
       printf "***************************\n"
       printf "* Error: Invalid argument.*\n"
@@ -53,8 +47,9 @@ done
 
 CheckArg $stack_name "--stack"
 CheckArg $bucket "--bucket"
-CheckArg $git_user "--git-user"
-CheckArg $git_repo "--git-repo"
+CheckArg $db_name "--db-name"
+CheckArg $db_user "--db-user"
+CheckArg $migration_bucket "--migration-bucket"
 
 echo "Downloading latest flyway-lambda"
 if [ ! -e  flyway-all.jar ]; then
@@ -66,5 +61,5 @@ aws cloudformation package --template-file ./stack.yaml --output-template-file .
 
 echo "Deploying CloudFormation templates"
 aws cloudformation deploy --template-file ./stack-out.yaml --stack-name $stack_name \
-  --parameter-overrides DBName=$db_name Username=$db_user GitUser=$git_user GitPassword=$git_pass GitRepo=$git_repo GitFolders=$git_folders \
+  --parameter-overrides DBName=$db_name Username=$db_user S3Bucket=$migration_bucket \
   --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM

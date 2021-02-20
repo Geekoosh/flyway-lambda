@@ -2,9 +2,9 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: RDS instance with secrets manager
 Parameters:
   VPC:
-    Type: AWS::EC2::VPC::Id
+    Type: String
   Subnets:
-    Type: List<AWS::EC2::Subnet::Id>
+    Type: String
   Username:
     Type: String
   DBName:
@@ -17,6 +17,7 @@ Resources:
   DBSecret:
     Type: AWS::SecretsManager::Secret
     Properties:
+      Name: !Join ["-", [!Ref AWS::StackName, "Secret"]]
       Description: 'Postgres password'
       GenerateSecretString:
         SecretStringTemplate: !Sub '{"username": "${Username}"}'
@@ -51,12 +52,21 @@ Resources:
   DBSecurityGroup:
     Properties:
       GroupDescription: Postgres Security Group
-      VpcId:
-        Ref: VPC
+      VpcId: !Ref VPC
     Type: AWS::EC2::SecurityGroup
 
   DBSubnetGroup:
     Properties:
       DBSubnetGroupDescription: Subnets available for the RDS DB Instance
-      SubnetIds: !Ref Subnets
+      SubnetIds: !Split [",", !Ref Subnets]
     Type: AWS::RDS::DBSubnetGroup
+
+Outputs:
+  DBSecurityGroup:
+    Value: !Ref DBSecurityGroup
+  DBSecretArn:
+    Value: !Ref DBSecret
+  DBSecretName:
+    Value: !Join ["-", [!Ref AWS::StackName, "Secret"]]
+  Endpoint:
+    Value: !GetAtt DB.Endpoint.Address

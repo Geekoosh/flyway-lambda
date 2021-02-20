@@ -77,7 +77,7 @@ Resources:
   FlywayLambda:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: FlywayLambda
+      FunctionName: FlywayLambdaGit
       Code: flyway-all.jar
       Description: Flyway lambda
       Environment:

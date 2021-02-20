@@ -9,13 +9,18 @@ Parameters:
     Type: String
   RDSSecurityGroup:
     Type: AWS::EC2::SecurityGroup::Id
-  Username:
+  DBSecretArn:
     Type: String
-  Password:
+  DBSecretName:
     Type: String
   ConnectionString:
     Type: String
 Resources:
+  S3BucketMigrations:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref S3Bucket
+
   FlywayLambdaExecutionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -36,6 +41,11 @@ Resources:
           PolicyDocument :
             Version: "2012-10-17"
             Statement:
+              - Effect: "Allow"
+                Action:
+                  - "secretsmanager:DescribeSecret"
+                  - "secretsmanager:GetSecretValue"
+                Resource: "*"
               - Effect: "Allow"
                 Action:
                   - "s3:GetObject"
@@ -63,16 +73,16 @@ Resources:
   FlywayLambda:
     Type: AWS::Lambda::Function
     Properties:
-      Code: flyway-lambda.jar
+      FunctionName: FlywayLambdaS3
+      Code: flyway-all.jar
       Description: Flyway lambda
       Environment:
         Variables:
-          DB_USERNAME: !Ref Username
-          DB_PASSWORD: !Ref Password
+          DB_SECRET: !Ref DBSecretName
           DB_CONNECTION_STRING: !Ref ConnectionString
           S3_BUCKET: !Ref S3Bucket
       Handler: com.geekoosh.flyway.FlywayHandler::handleRequest
-      MemorySize: 256
+      MemorySize: 512
       Role: !GetAtt FlywayLambdaExecutionRole.Arn
       Runtime: java8
       Timeout: 120
