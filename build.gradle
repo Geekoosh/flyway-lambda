@@ -42,7 +42,7 @@ dependencyManagement {
 }
 
 dependencies {
-    implementation group: 'org.flywaydb', name: 'flyway-core', version: '7.1.1'
+    implementation group: 'org.flywaydb', name: 'flyway-core', version: '7.5.3'
     implementation group: 'org.eclipse.jgit', name: 'org.eclipse.jgit', version: '5.5.0.201909110433-r'
     implementation group: 'commons-io', name: 'commons-io', version: '2.5'
     implementation group: 'org.json', name: 'json', version: '20190722'
