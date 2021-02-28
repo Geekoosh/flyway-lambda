@@ -6,7 +6,7 @@ Deploy Flyway as an AWS Lambda within your VPC with access to your RDS database.
 flyway-lambda fetches the migration scripts from either a Git repo or from an S3 bucket.
 
 ## Configuration
-Lambda supports `Flyway` configuration via Lambda invocation json request, [environment variables](https://flywaydb.org/documentation/envvars) and [config files](https://flywaydb.org/documentation/configfiles).
+Lambda supports Flyway configuration via Lambda invocation json request, [environment variables](https://flywaydb.org/documentation/envvars) and [config files](https://flywaydb.org/documentation/configfiles).
 
 ### Git
 flyway-lambda supports pulling migration scripts from a Git repo given Git repo, branch name, username, and password.
@@ -31,5 +31,5 @@ For more information, check [Flyway Configuration](https://github.com/Geekoosh/f
 Flyway config files can also reside in s3 or within your git repo
 
 ## Logging
-flyway-lambda logs to `CloudWatch`.
+flyway-lambda logs to CloudWatch.
 For more information, check [Logging](https://github.com/Geekoosh/flyway-lambda/wiki/Logging).
