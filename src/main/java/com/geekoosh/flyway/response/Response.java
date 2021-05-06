@@ -39,7 +39,7 @@ public class Response {
         if(info.getApplied() != null) {
             logInfo += String.format("Applied migrations: %s, %s\n",
                     info.getApplied().length,
-                    Arrays.stream(info.getApplied()).map(my -> "(" + my.getVersion().getVersion() + " [" + my.getScript() + "])")
+                    Arrays.stream(info.getApplied()).map(my -> "(" + (my.getVersion() == null ? "" : my.getVersion().getVersion()) + " [" + my.getScript() + "])")
                             .collect(Collectors.joining(", "))
             );
         }
