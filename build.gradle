@@ -1,9 +1,9 @@
 group 'com.geekoosh'
-version '0.0.3'
+version '0.0.4'
 
 apply plugin: 'java'
 
-sourceCompatibility = 1.8
+sourceCompatibility = 1.11
 
 repositories {
     mavenCentral()
@@ -54,6 +54,7 @@ dependencies {
     implementation group: 'com.amazonaws', name: 'aws-lambda-java-log4j2', version: '1.5.0'
     implementation group: 'com.amazonaws', name: 'aws-java-sdk-s3'
     implementation group: 'com.amazonaws', name: 'aws-java-sdk-secretsmanager'
+    implementation platform('org.testcontainers:testcontainers-bom:1.16.2')
     testCompile group: 'junit', name: 'junit', version: '4.12'
     testCompile group: 'org.mockito', name: 'mockito-core', version: '2.+'
     testCompile group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.19.0'
@@ -64,8 +65,8 @@ dependencies {
     testCompile group: 'org.eclipse.jgit', name: 'org.eclipse.jgit.junit', version: '5.5.0.201909110433-r'
     testCompile group: 'org.eclipse.jgit', name: 'org.eclipse.jgit', version: '5.5.0.201909110433-r'
     testCompile group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: '8.5.23'
-    testCompile group: 'org.testcontainers', name: 'postgresql', version: '1.12.1'
-    testCompile group: 'org.testcontainers', name: 'mysql', version: '1.12.1'
+    testCompile group: 'org.testcontainers', name: 'postgresql'
+    testCompile group: 'org.testcontainers', name: 'mysql'
 }
 
 task buildZip(type: Zip) {
