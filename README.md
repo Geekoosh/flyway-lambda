@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/Geekoosh/flyway-lambda.svg?branch=master)](https://travis-ci.org/Geekoosh/flyway-lambda)
+[![Build Status](https://app.travis-ci.com/Geekoosh/flyway-lambda.svg?branch=master)](https://app.travis-ci.com/github/Geekoosh/flyway-lambda)
 
 Deploy Flyway as an AWS Lambda within your VPC with access to your RDS database.
 
