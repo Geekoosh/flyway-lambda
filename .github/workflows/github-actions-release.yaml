@@ -1,14 +1,15 @@
-name: Java CI
+name: Releases
 
 on:
   push:
-    tags-ignore:
-      - '**'
+    tags:
+      - '*'
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK 11
@@ -22,7 +23,7 @@ jobs:
         run: ./gradlew build
       - name: Package
         run: ./gradlew shadowJar
-      - uses: actions/upload-artifact@v2
+      - uses: ncipollo/release-action@v1
         with:
-          name: Package
-          path: build/libs
+          artifacts: build/libs/*.jar
+          token: ${{ secrets.GITHUB_TOKEN }}
