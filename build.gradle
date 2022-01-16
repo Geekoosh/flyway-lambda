@@ -65,8 +65,8 @@ dependencies {
     testCompile group: 'org.eclipse.jgit', name: 'org.eclipse.jgit.junit', version: '5.5.0.201909110433-r'
     testCompile group: 'org.eclipse.jgit', name: 'org.eclipse.jgit', version: '5.5.0.201909110433-r'
     testCompile group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: '8.5.23'
-    testCompile group: 'org.testcontainers', name: 'postgresql'
-    testCompile group: 'org.testcontainers', name: 'mysql'
+    testCompile group: 'org.testcontainers', name: 'postgresql', version: "1.16.2"
+    testCompile group: 'org.testcontainers', name: 'mysql', version: "1.16.2"
 }
 
 task buildZip(type: Zip) {

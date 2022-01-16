@@ -87,7 +87,8 @@ public class FlywayHandlerMySQLTests extends GitSSLTestCase {
     }
 
     private MySQLContainer mySQLContainer() {
-        return new MySQLContainer<>().withUsername("username").withPassword("password").withDatabaseName("testdb");
+        return new MySQLContainer<>("mysql:5.7.36")
+                .withUsername("username").withPassword("password").withDatabaseName("testdb");
     }
 
     @Test
@@ -115,7 +116,9 @@ public class FlywayHandlerMySQLTests extends GitSSLTestCase {
             Assert.assertEquals("2", response.getInfo().getCurrent().getVersion().toString());
             Assert.assertEquals(2, response.getInfo().getApplied().length);
 
-            Connection con = DriverManager.getConnection(mysql.getJdbcUrl(), "username", "password");
+            Connection con = DriverManager.getConnection(
+                    mysql.getJdbcUrl() + "?enabledTLSProtocols=TLSv1.2", "username", "password"
+            );
             Statement stmt = con.createStatement();
             ResultSet rs = stmt.executeQuery(String.format("describe %s.tasks;", "testdb"));
             rs.next();

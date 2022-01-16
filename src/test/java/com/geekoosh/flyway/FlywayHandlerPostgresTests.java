@@ -124,7 +124,8 @@ public class FlywayHandlerPostgresTests {
     }
 
     private PostgreSQLContainer postgreSQLContainer() {
-        return new PostgreSQLContainer<>().withUsername("username").withPassword("password");
+        return new PostgreSQLContainer<>("postgres:11.14")
+                .withUsername("username").withPassword("password");
     }
 
     @Test
