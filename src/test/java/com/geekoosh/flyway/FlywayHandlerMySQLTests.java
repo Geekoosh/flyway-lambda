@@ -91,11 +91,15 @@ public class FlywayHandlerMySQLTests extends GitSSLTestCase {
                 .withUsername("username").withPassword("password").withDatabaseName("testdb");
     }
 
+    private String jdbcUrl(MySQLContainer mysql) {
+        return mysql.getJdbcUrl() + "?enabledTLSProtocols=TLSv1.2";
+    }
+
     @Test
     public void testMigrateMySQL() throws Exception {
         try (MySQLContainer mysql = mySQLContainer()) {
             mysql.start();
-            setConnectionString(mysql.getJdbcUrl());
+            setConnectionString(jdbcUrl(mysql));
 
             pushFilesToMaster(
                     Arrays.asList(
@@ -117,7 +121,7 @@ public class FlywayHandlerMySQLTests extends GitSSLTestCase {
             Assert.assertEquals(2, response.getInfo().getApplied().length);
 
             Connection con = DriverManager.getConnection(
-                    mysql.getJdbcUrl() + "?enabledTLSProtocols=TLSv1.2", "username", "password"
+                    jdbcUrl(mysql), "username", "password"
             );
             Statement stmt = con.createStatement();
             ResultSet rs = stmt.executeQuery(String.format("describe %s.tasks;", "testdb"));
@@ -142,7 +146,7 @@ public class FlywayHandlerMySQLTests extends GitSSLTestCase {
     public void testMigrateWithConfig() throws Exception {
         try (MySQLContainer mysql = mySQLContainer()) {
             mysql.start();
-            setConnectionString(mysql.getJdbcUrl());
+            setConnectionString(jdbcUrl(mysql));
 
             environmentVariables.set("FLYWAY_CONFIG_FILE", "file://flyway/config.props");
 
@@ -184,7 +188,7 @@ public class FlywayHandlerMySQLTests extends GitSSLTestCase {
     public void testMigrateFromCommitMySQL() throws Exception {
         try (MySQLContainer mysql = mySQLContainer()) {
             mysql.start();
-            setConnectionString(mysql.getJdbcUrl());
+            setConnectionString(jdbcUrl(mysql));
             ObjectId commitId1 = pushFilesToMaster(
                     Collections.singletonList(
                             new GitFile(
@@ -228,7 +232,7 @@ public class FlywayHandlerMySQLTests extends GitSSLTestCase {
     public void testBaselineMySQL() throws Exception {
         try (MySQLContainer mysql = mySQLContainer()) {
             mysql.start();
-            setConnectionString(mysql.getJdbcUrl());
+            setConnectionString(jdbcUrl(mysql));
             pushFilesToMaster(
                     Arrays.asList(
                             new GitFile(
