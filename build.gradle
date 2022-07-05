@@ -58,7 +58,7 @@ dependencies {
     testImplementation group: 'junit', name: 'junit', version: '4.13.1'
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '2.+'
     testImplementation group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.19.0'
-    testImplementation group: 'com.adobe.testing', name: 's3mock', version: '1.0.4'
+    testImplementation group: 'com.adobe.testing', name: 's3mock-junit4', version: '2.4.13'
     testImplementation group: 'org.eclipse.jgit', name: 'org.eclipse.jgit.http.server', version: '5.5.0.201909110433-r'
     testImplementation group: 'org.eclipse.jetty', name: 'jetty-servlet', version: '9.4.3.v20170317'
     testImplementation group: 'org.eclipse.jgit', name: 'org.eclipse.jgit.junit.http', version: '5.5.0.201909110433-r'

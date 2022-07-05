@@ -1,6 +1,6 @@
 package com.geekoosh.flyway;
 
-import com.adobe.testing.s3mock.S3MockRule;
+import com.adobe.testing.s3mock.junit4.S3MockRule;
 import com.amazonaws.services.s3.AmazonS3;
 import com.geekoosh.flyway.request.DBRequest;
 import com.geekoosh.flyway.request.FlywayRequest;
