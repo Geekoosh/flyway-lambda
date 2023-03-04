@@ -33,3 +33,6 @@ Flyway config files can also reside in s3 or within your git repo
 ## Logging
 flyway-lambda logs to CloudWatch.
 For more information, check [Logging](https://github.com/Geekoosh/flyway-lambda/wiki/Logging).
+
+## Contributing
+Please read the [contributing guidelines](CONTRIBUTING.md) to set up your development machine and proceed.

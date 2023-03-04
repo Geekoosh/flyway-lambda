@@ -136,7 +136,7 @@ public class FlywayHandlerMySQLTests extends GitSSLTestCase {
 
             con.close();
 
-            request.setFlywayRequest(new FlywayRequest().setFlywayMethod(FlywayMethod.CLEAN));
+            request.setFlywayRequest(new FlywayRequest().setFlywayMethod("clean"));
             response = flywayHandler.handleRequest(request, null);
             Assert.assertNull(response.getInfo().getCurrent());
         }
@@ -247,7 +247,7 @@ public class FlywayHandlerMySQLTests extends GitSSLTestCase {
             );
             FlywayHandler flywayHandler = new FlywayHandler();
             Request request = new Request().setFlywayRequest(
-                    new FlywayRequest().setFlywayMethod(FlywayMethod.BASELINE).setBaselineVersion("1")
+                    new FlywayRequest().setFlywayMethod("BASELINE").setBaselineVersion("1")
             );
             Response response = flywayHandler.handleRequest(request, null);
             Assert.assertEquals("1", response.getInfo().getCurrent().getVersion().toString());
