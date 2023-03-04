@@ -2,6 +2,7 @@ package com.geekoosh.flyway;
 
 import com.amazonaws.services.s3.model.S3Object;
 import com.geekoosh.flyway.request.DBRequest;
+import com.geekoosh.flyway.request.FlywayMethod;
 import com.geekoosh.flyway.request.FlywayRequest;
 import com.geekoosh.lambda.MigrationFilesService;
 import com.geekoosh.lambda.s3.S3Service;
@@ -241,7 +242,7 @@ public class FlywayService {
         flyway.validate();
     }
     public MigrationInfoService call() throws IOException {
-        switch (flywayRequest.getFlywayMethod()) {
+        switch (FlywayMethod.valueOf(flywayRequest.getFlywayMethod())) {
             case MIGRATE:
                 logger.info("Running migration");
                 migrate();

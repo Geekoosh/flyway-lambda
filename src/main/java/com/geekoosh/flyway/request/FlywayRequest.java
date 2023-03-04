@@ -1,6 +1,7 @@
 package com.geekoosh.flyway.request;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class FlywayRequest {
@@ -35,7 +36,7 @@ public class FlywayRequest {
     private String baselineDescription;
     private String installedBy;
     private String configFile;
-    private FlywayMethod flywayMethod;
+    private String flywayMethod = FlywayMethod.MIGRATE.toString();
 
     public Integer getConnectRetries() {
         return connectRetries;
@@ -316,12 +317,16 @@ public class FlywayRequest {
         return this;
     }
 
-    public FlywayMethod getFlywayMethod() {
+    public String getFlywayMethod() {
         return flywayMethod;
     }
 
     public FlywayRequest setFlywayMethod(FlywayMethod flywayMethod) {
-        this.flywayMethod = flywayMethod;
+        this.flywayMethod = flywayMethod.toString();
+        return this;
+    }
+    public FlywayRequest setFlywayMethod(String flywayMethod) {
+        this.flywayMethod = flywayMethod.toUpperCase(Locale.ROOT);
         return this;
     }
 
@@ -333,7 +338,7 @@ public class FlywayRequest {
                 base.getConfigFile(), EnvironmentVars.FLYWAY_CONFIG_FILE
         ));
         base.setFlywayMethod(ValueManager.value(
-                base.getFlywayMethod(), EnvironmentVars.FLYWAY_METHOD,
+                FlywayMethod.valueOf(base.getFlywayMethod()), EnvironmentVars.FLYWAY_METHOD,
                 v -> v == null ? FlywayMethod.MIGRATE : FlywayMethod.valueOf(v)
         ));
 

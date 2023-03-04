@@ -2,8 +2,9 @@ name: Java CI
 
 on:
   push:
-    tags-ignore:
-      - '**'
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
 
 jobs:
   build:
@@ -20,6 +21,12 @@ jobs:
         uses: gradle/wrapper-validation-action@e6e38bacfdf1a337459f332974bb2327a31aaf4b
       - name: Build with Gradle
         run: ./gradlew build
+      - name: Upload test results
+        uses: actions/upload-artifact@v2
+        if: success() || failure()
+        with:
+          name: test-results
+          path: build/reports/tests/test
       - name: Package
         run: ./gradlew shadowJar
       - uses: actions/upload-artifact@v2

@@ -1,7 +1,5 @@
 package com.geekoosh.flyway;
 
-import com.adobe.testing.s3mock.S3MockRule;
-import com.amazonaws.services.s3.AmazonS3;
 import com.geekoosh.flyway.request.DBRequest;
 import com.geekoosh.flyway.request.FlywayRequest;
 import com.geekoosh.lambda.MigrationFilesService;
@@ -19,6 +17,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.containers.localstack.LocalStackContainer;
+import org.testcontainers.utility.DockerImageName;
 
 import static org.junit.Assert.*;
 
@@ -35,17 +35,20 @@ public class FlywayServiceTests {
             = new EnvironmentVariables();
 
     @ClassRule
-    public static S3MockRule S3_MOCK_RULE = new S3MockRule();
-
-    private final AmazonS3 s3 = S3_MOCK_RULE.createS3Client();
+    public static LocalStackContainer localstack = new LocalStackContainer(DockerImageName.parse("localstack/localstack:0.11.3"))
+            .withServices(LocalStackContainer.Service.S3);
+    private final String BUCKET1 = "bucket-1";
+    private final S3MockHelper s3MockHelper  = new S3MockHelper(localstack);
 
     @Before
     public void setUp() throws IOException {
+        s3MockHelper.getS3().createBucket(BUCKET1);
         Properties confProps = new Properties();
         confProps.setProperty("flyway.sqlMigrationPrefix", "F");
-        S3MockHelper s3MockHelper = new S3MockHelper(s3);
-        s3MockHelper.uploadConfig(confProps, "Bucket-1", "flyway/config.props");
-        s3.putObject("Bucket-1", "flyway/bad-config.props", "vary bad string");
+
+        s3MockHelper.uploadConfig(confProps, BUCKET1, "flyway/config.props");
+
+        s3MockHelper.getS3().putObject(BUCKET1, "flyway/bad-config.props", "vary bad string");
     }
 
     private MySQLContainer mySQLContainer() {
@@ -58,7 +61,7 @@ public class FlywayServiceTests {
         Mockito.when(migrationFilesService.getFolders()).thenReturn(Arrays.asList("folder1", "folder2"));
         try (MySQLContainer mysql = mySQLContainer()) {
             mysql.start();
-            S3Service.setAmazonS3(s3);
+            S3Service.setAmazonS3(s3MockHelper.getS3());
             String connectionString = mysql.getJdbcUrl();
             DBRequest dbRequest = new DBRequest().setUsername("user").setPassword("password").setConnectionString(connectionString);
 
@@ -73,7 +76,7 @@ public class FlywayServiceTests {
                     Stream.of(conf.getLocations()).map(Location::getPath).collect(Collectors.toList()));
             assertEquals("V", conf.getSqlMigrationPrefix());
 
-            environmentVariables.set("FLYWAY_CONFIG_FILE", "s3://Bucket-1/flyway/config.props");
+            environmentVariables.set("FLYWAY_CONFIG_FILE", String.format("s3://%s/flyway/config.props", BUCKET1));
             flywayService = new FlywayService(
                     FlywayRequest.build(null),
                     dbRequest,
@@ -112,7 +115,7 @@ public class FlywayServiceTests {
         try (MySQLContainer mysql = mySQLContainer()) {
             mysql.start();
 
-            environmentVariables.set("FLYWAY_CONFIG_FILE", "s3://Bucket-1/flyway/config-not-there.props");
+            environmentVariables.set("FLYWAY_CONFIG_FILE", String.format("s3://%s/flyway/config-not-there.props", BUCKET1));
             String connectionString = mysql.getJdbcUrl();
             DBRequest dbRequest = new DBRequest().setUsername("user").setPassword("password").setConnectionString(connectionString);
 

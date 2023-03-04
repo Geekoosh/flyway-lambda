@@ -43,8 +43,6 @@
 
 package com.geekoosh.flyway;
 
-import com.adobe.testing.s3mock.S3MockRule;
-import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.model.GetSecretValueRequest;
 import com.amazonaws.services.secretsmanager.model.GetSecretValueResult;
@@ -60,25 +58,33 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.containers.localstack.LocalStackContainer;
+import org.testcontainers.utility.DockerImageName;
 
 import java.io.File;
 import java.sql.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class FlywayHandlerPostgresTests {
-
     @ClassRule
-    public static S3MockRule S3_MOCK_RULE = new S3MockRule();
-    private final AmazonS3 s3 = S3_MOCK_RULE.createS3Client();
-    private final S3MockHelper s3MockHelper = new S3MockHelper(s3);
+    public static LocalStackContainer localstack = new LocalStackContainer(DockerImageName.parse("localstack/localstack:0.11.3"))
+            .withServices(LocalStackContainer.Service.S3);
+    private S3MockHelper s3MockHelper;
+    private static final String BUCKET1 = "bucket-1";
+    private static final String BUCKET2 = "bucket-2";
+    private static final String BUCKET3 = "bucket-3";
 
     @Rule
     public final EnvironmentVariables environmentVariables
             = new EnvironmentVariables();
 
     @Before
-    public void setUp() throws Exception {
-        S3Service.setAmazonS3(s3);
+    public void setUp() {
+        s3MockHelper = new S3MockHelper(localstack);
+        S3Service.setAmazonS3(s3MockHelper.getS3());
+        s3MockHelper.getS3().createBucket(BUCKET1);
+        s3MockHelper.getS3().createBucket(BUCKET2);
+        s3MockHelper.getS3().createBucket(BUCKET3);
     }
 
     private void testMigrate(String connectionString, String bucket) throws SQLException {
@@ -134,10 +140,10 @@ public class FlywayHandlerPostgresTests {
             postgres.start();
             s3MockHelper.upload(
                     new File(getClass().getClassLoader().getResource("migrations/postgres/V1__init.sql").getFile()),
-                    "Bucket-1",
+                    BUCKET1,
                     "migrations/V1__init.sql"
             );
-            testMigrate(postgres.getJdbcUrl(), "Bucket-1", "migrations");
+            testMigrate(postgres.getJdbcUrl(), BUCKET1, "migrations");
         }
     }
     @Test
@@ -146,10 +152,10 @@ public class FlywayHandlerPostgresTests {
             postgres.start();
             s3MockHelper.upload(
                     new File(getClass().getClassLoader().getResource("migrations/postgres/V1__init.sql").getFile()),
-                    "Bucket-2",
+                    BUCKET2,
                     "V1__init.sql"
             );
-            testMigrate(postgres.getJdbcUrl(), "Bucket-2");
+            testMigrate(postgres.getJdbcUrl(), BUCKET2);
         }
     }
     @Test
@@ -166,10 +172,10 @@ public class FlywayHandlerPostgresTests {
                     .thenReturn(getSecretValueResult);
             s3MockHelper.upload(
                     new File(getClass().getClassLoader().getResource("migrations/postgres/V1__init.sql").getFile()),
-                    "Bucket-3",
+                    BUCKET3,
                     "migrations/V1__init.sql"
             );
-            testMigrate(postgres.getJdbcUrl(), "Bucket-3", "migrations", "password_secret", true);
+            testMigrate(postgres.getJdbcUrl(), BUCKET3, "migrations", "password_secret", true);
         }
     }
 }
