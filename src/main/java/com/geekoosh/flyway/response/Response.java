@@ -46,7 +46,7 @@ public class Response {
         if(info.getPending() != null) {
             logInfo += String.format("Pending migrations: %s, %s\n",
                     info.getPending().length,
-                    Arrays.stream(info.getPending()).map(my -> "(" + my.getVersion().getVersion() + " [" + my.getScript() + "])")
+                    Arrays.stream(info.getPending()).map(my -> "(" + (my.getVersion() == null ? "" : my.getVersion().getVersion()) + " [" + my.getScript() + "])")
                             .collect(Collectors.joining(", "))
             );
         }
