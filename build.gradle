@@ -63,6 +63,12 @@ dependencies {
     implementation group: 'com.amazonaws', name: 'aws-lambda-java-log4j2', version: '1.5.1'
     implementation group: 'com.amazonaws', name: 'aws-java-sdk-s3'
     implementation group: 'com.amazonaws', name: 'aws-java-sdk-secretsmanager'
+
+    // Override transitive dependencies within SecretsManager to deal with high priority CVEs.
+    // See https://github.com/flyway/flyway/commit/99dafe14591d8eb9c0025f47be73015ae6ced4ac
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.10.5.1'
+    implementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-cbor', version: '2.12.1'
+
     implementation platform("org.testcontainers:testcontainers-bom:${testContainersVersion}")
     testImplementation group: 'junit', name: 'junit', version: '4.13.2'
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '2.+'
